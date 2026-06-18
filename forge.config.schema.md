@@ -92,10 +92,24 @@ Knobs for the traceability generator (`tools/forge_tools/traceability.py`).
 | Field        | Type     | Default                                                                 | Meaning                                                                                       |
 | ------------ | -------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | `globs`      | string[] | `["apps/**/*","libs/**/*","src/**/*","packages/**/*","modules/**/*","examples/**/*"]` | Repo-relative source patterns scanned for tags. `**` is recursive; `*` does not cross `/`. The defaults are the conventional locations a project's **own** source lives; Forge's framework folders (`templates/`, `tools/`, `docs/`) are excluded so tag *examples* in Forge's prose are not picked up. |
-| `tagAliases` | object   | `{"requirement":["requirement","req"],"rule":["rule","businessRule"]}`  | Maps a **link kind** to the tag keywords that record it. `requirement` links a requirement id (`FR`/`NFR`/`CR`/`UC`/`EN`); `rule` links a business rule (`BR`). Project-declared aliases are **merged on top of** the defaults, so adding an alias never drops the built-in ones. |
+| `tagAliases` | object   | `{"requirement":["requirement","req"],"rule":["rule","businessRule"],"convention":["convention","conv"]}`  | Maps a **link kind** to the tag keywords that record it. `requirement` links a requirement id (`FR`/`NFR`/`CR`/`UC`/`EN`); `rule` links a business rule (`BR`); `convention` links an engineering convention (`EC`) from the [Conventions Map](#the-conventions-map-ec-tag). Project-declared aliases are **merged on top of** the defaults, so adding an alias never drops the built-in ones. |
 
 > Generalized from PedPlus's hardcoded `@requirement RFxx` / `@businessRule
 > RNxx`. In Forge the tag keywords and the scanned globs are config, not code.
+
+#### The Conventions Map (`EC`) tag
+
+The `convention` alias (default `@convention` / `@conv`) recognizes tags that
+link honoring code/tests to an **engineering convention** (`EC-xx`) from the
+project's **Conventions Map** (`docs/requirements/conventions.md`). This is
+**lightweight traceability only — NOT a hard gate**: an `EC` with no
+`@convention` tag is **not** reported as a coverage gap, because the Conventions
+Map is not the requirements matrix. The Conventions Map's real enforcement is the
+two teeth described in its template — applicable `EC` rules injected into every
+feature-building prompt's context, and the [`reviewer`](../.claude/agents/reviewer.md)
+subagent's `EC`-compliance dimension. The tag merely lets a project that wants it
+record *which* features honored *which* convention. Neutral default: the alias is
+recognized, but no project is required to use it.
 
 ### `docsHooks` (array) — OPTIONAL stack plugins
 

@@ -32,6 +32,7 @@ the matching skill (e.g. `forge-plan-phase`).
 | **forge-review**          | command | Run the independent `reviewer` subagent over a diff/branch/commit before integrating. Read-only.     | `/forge-review [<scope>]`  |
 | **forge-sync-docs**       | command | Regenerate derived docs (STATUS, traceability, changelog) + any declared stack `docsHooks`.          | `/forge-sync-docs`         |
 | **forge-add-requirement** | command | Add/alter a requirement in `docs/requirements/` (the only sanctioned way) and propagate the matrix.  | `/forge-add-requirement`   |
+| **forge-add-convention**  | command | Add/alter an engineering convention (`EC`) in the **Conventions Map** (`docs/requirements/conventions.md`) — pick from the catalog or define a custom one; also records an agent's proactive proposal. | `/forge-add-convention`    |
 | **forge-new-feature**     | command | Scaffold a feature — runs the project's declared generator, or emits a stack-agnostic checklist.     | `/forge-new-feature <name>`|
 | **forge-new-module**      | command | Scaffold a module (modular projects only) — declared generator or stack-agnostic checklist.          | `/forge-new-module <name>` |
 
@@ -52,6 +53,14 @@ the matching skill (e.g. `forge-plan-phase`).
   needs a requirement or a phase).
 - **Change a requirement:** `/forge-add-requirement` (keeps
   `docs/requirements/` and the matrix coherent) → plan/implement.
+- **Grow the Conventions Map:** `/forge-add-convention` — record a cross-cutting
+  engineering/UX default (`EC`) from the curated catalog or a custom one. The
+  **Conventions Map** (`docs/requirements/conventions.md`) is the registry of
+  defaults every feature must honor (pagination, async states, authz on every
+  action, a11y, avoid N+1, …); it is seeded at `/forge-init`, injected into every
+  feature prompt's context, and checked by the `reviewer`. Agents may also
+  **propose** a new `EC` while building — this command is how it gets recorded
+  and approved.
 - **Add a new area/module (modular projects):** `/forge-new-module <name>` →
   fill its requirement doc → `/forge-plan-phase` for its prompts.
 

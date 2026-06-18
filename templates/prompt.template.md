@@ -13,6 +13,7 @@
 - **Depends on:** <prompt ids or "none">
 - **Reference docs (read before starting):**
   - `docs/requirements/index.md`
+  - `docs/requirements/conventions.md` (Conventions Map — apply matching `EC-` rules)
   - `docs/requirements/<specific docs for this prompt>`
 - **Requirements covered:** <requirement ids, e.g. R-xx / NFR-xx / BR-xx / C-xx>
 - **Expected outputs / artifacts:** <folders / files / resources this prompt produces>
@@ -29,6 +30,19 @@ the docs and the recorded architecture decisions (ADRs, see
 `docs/requirements/decisions.md`). Honor the project's stack and conventions as
 declared in `forge.config.json` — do not hardcode tools the project did not
 choose.
+
+**Honor the Conventions Map.** Read `docs/requirements/conventions.md` (if the
+project has one) and identify **every `EC-` entry whose "Applies to" scope
+matches the work in this prompt** — e.g. pagination/virtualization for any list,
+async loading/empty/error states for any fetched view, authorization on every
+action, avoid N+1, accessibility, debounced search. Apply each matching **active**
+`EC` within its **Parameters**, and **record which `EC` ids you honored** in the
+relevant code and tests (optionally as `@convention EC-xx` tags). These are
+cross-cutting defaults you must not skip just because the requirement text does
+not restate them. If, while building, you hit a **recurring concern that the map
+does not cover**, do **not** silently invent a one-off rule: **propose** adding
+it to the map via **`/forge-add-convention`** (a `proposed` entry for the
+developer to approve).
 
 ## Context (self-sufficient)
 
@@ -52,6 +66,9 @@ conversation. Always point to the docs that back each claim.>
 ## Acceptance criteria
 
 - [ ] <verifiable condition>
+- [ ] Applicable Conventions Map (`EC-`) rules are honored — every `EC` whose
+      "Applies to" matches this prompt's work is applied within its parameters,
+      and the honored `EC` ids are recorded in code/tests.
 - [ ] <…>
 
 ## State & docs update (required)

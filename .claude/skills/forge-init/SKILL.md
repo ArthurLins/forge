@@ -38,7 +38,8 @@ All paths are relative to the project root (the copied Forge folder).
 | ADR shape (F1) | `templates/adr.template.md` | shape of ADR-001 and later ADRs. |
 | Agent-guide shape (F1) | `templates/agent-guide.template.md` | optional per-area guides if the project is large. |
 | **Requirement tiers + README (F2)** | `templates/requirements/README.md`, `templates/requirements/*.template.md` | choose the tier and instantiate exactly the matching templates. |
-| ID taxonomy / index (F2) | `templates/requirements/index.template.md` | the `FR/NFR/BR/CR/UC/EN/ADR` taxonomy and the docs index you produce. |
+| ID taxonomy / index (F2) | `templates/requirements/index.template.md` | the `FR/NFR/BR/CR/UC/EN/EC/ADR` taxonomy and the docs index you produce. |
+| **Conventions catalog + map template** | `templates/conventions-catalog.md`, `templates/requirements/conventions.template.md` | propose the relevant cross-cutting `EC` conventions and generate `docs/requirements/conventions.md` (the Conventions Map). |
 | Prompt engine (F3) | `prompts/state.json`, `prompts/state.schema.md`, `prompts/next_prompt.py`, `prompts/README.md` | seed the roadmap (phases + first batch of `pending` prompts); DoD lives here. |
 | Prompt shape (F3) | `templates/prompt.template.md` | author each seeded prompt file. |
 | Derived-docs tools (F4) | `tools/`, `Makefile`, `tools/README.md` | run `forge-sync-docs` so generated docs + `STATUS.md` exist from minute one. |
@@ -110,11 +111,21 @@ developer is unsure, but never impose a choice):
    `criticalPaths.paths`.)
 7. **Rough phase shape** — what are the first milestones, in what order, and
    what depends on what? (Seeds the roadmap in Step 6.)
+8. **Cross-cutting conventions** — **infer the project type** from the earlier
+   answers (does it have a UI? an API/service? a CLI? is it data-heavy?), then
+   **propose the relevant `EC` conventions** from
+   `templates/conventions-catalog.md` (the entries whose **Relevant for** matches
+   that type), each with its **default thresholds**. Present them grouped by
+   category and ask the developer to **confirm, adjust a threshold, add a custom
+   one, or waive** any. Scale the count to the size answer: a **slim** set for a
+   lean project, a **fuller** set for standard/full. Do **not** dump the whole
+   catalog — propose the matching subset. (Seeds `docs/requirements/conventions.md`
+   in Step 5.)
 
 Iterate until ambiguity is gone. Then **summarize the understanding in 5–10
 lines** — idea, users, in/out of scope, size→tier, stack, compliance, critical
-paths, phase shape — and **ask for explicit confirmation** ("Did I understand
-this correctly? May I proceed to scaffold?").
+paths, phase shape, the conventions set — and **ask for explicit confirmation**
+("Did I understand this correctly? May I proceed to scaffold?").
 
 > **STOP CONDITION (the refusal):** you may **not** proceed to Step 3 (or write
 > any file) until the developer has **answered** the interview **and explicitly
@@ -132,6 +143,9 @@ From the **size** answer, pick **`lean` | `standard` | `full`** using the
   `traceability` (generated).
 - **full** → standard **+** `use-cases`, `interface`, `compliance`,
   `architecture`, `modularity`, `standards`.
+- **all tiers** → `conventions` (the **Conventions Map**, `EC`). It is
+  instantiated regardless of tier; what scales with the tier is how many `EC`
+  entries the interview proposes (slim for lean, fuller for standard/full).
 
 Drivers that push **up** a tier (more than one area/module; a data model with
 real invariants; any compliance regime; named critical paths; a team large
@@ -193,6 +207,17 @@ Instantiate **exactly** the templates the chosen tier lists, copying each
 - `decisions.md` — already created in Step 4 (ADR-001). Add any further ADRs the
   interview produced using `templates/adr.template.md`.
 - `roadmap.md` — the phase shape from the interview (mirrors Step 6).
+- `conventions.md` (the **Conventions Map**, **all tiers**) — copy
+  `templates/requirements/conventions.template.md` to
+  `docs/requirements/conventions.md`, then fill it with the **`EC` conventions
+  confirmed in interview question 8**, drawing each entry's rule / Applies-to /
+  Parameters from `templates/conventions-catalog.md`. **Renumber sequentially**
+  (`EC-01`, `EC-02`, …), set each **Status** (`active`, or `waived` with the
+  reason for any the developer declined), keep the entries grouped by category,
+  and replace the worked stub with the first real entry. Scale the set to the
+  tier: slim for `lean`, fuller for `standard`/`full`. Record any threshold the
+  developer wanted but left undecided as an open question — never guess a value
+  beyond the catalog default.
 - **standard adds**: `non-functional.md` (`NFR`, measurable), `data-model.md`
   (`EN` entities), `business-rules.md` (`BR`). Mirror named critical paths into
   the "Critical paths"/"Critical rules" sections **and** keep them in sync with
@@ -271,6 +296,9 @@ Create `docs/requirements/.logs/genesis-<YYYY-MM-DD>.md` containing:
 - **Confirmed understanding** (the 5–10-line summary the developer approved).
 - **Chosen tier** and **why** (the size drivers).
 - **Stack** (the ADR-001 table) with a link to `docs/requirements/decisions.md`.
+- **Conventions Map** — the `EC` entries seeded into
+  `docs/requirements/conventions.md` (ids + titles, and any waived with the
+  reason), with the inferred project type that drove the selection.
 - **Generated docs** (the list instantiated for the tier).
 - **Seeded roadmap** (phases + the first batch of prompt IDs).
 - **Open questions** carried forward (anything left undecided).
@@ -304,7 +332,10 @@ Forge genesis complete — first-run checklist
   any functional detail (Step 5).
 - **Never invent requirements**; undecided items are recorded as open questions.
 - **Tier-scaled**: instantiate exactly the tier's documents (lean/standard/full),
-  using the real F2 templates and the README's rule of thumb.
+  using the real F2 templates and the README's rule of thumb. The **Conventions
+  Map** (`conventions.md`, `EC`) is instantiated in **every** tier; only the
+  number of proposed entries scales with the tier and project type — propose from
+  `templates/conventions-catalog.md`, never the whole catalog blindly.
 - **Idempotent-aware**: if a spec already exists, offer to extend — never
   silently clobber.
 - **Stack-neutral & domain-agnostic**: capture the stack from the interview;

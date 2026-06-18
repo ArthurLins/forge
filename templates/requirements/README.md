@@ -30,6 +30,7 @@ The smallest spec that still keeps code traceable to intent.
 | [`functional.template.md`](functional.template.md) | Functional requirements (`FR`).                |
 | [`decisions.template.md`](decisions.template.md) | Architecture Decision Records (`ADR`), incl. the **Stack ADR**. |
 | [`roadmap.template.md`](roadmap.template.md)   | Phased plan / milestones.                          |
+| [`conventions.template.md`](conventions.template.md) | Conventions Map (`EC`) — cross-cutting engineering/UX defaults. **All tiers** (see note). |
 
 ### `standard` — most production projects
 
@@ -54,6 +55,15 @@ The smallest spec that still keeps code traceable to intent.
 | [`architecture.template.md`](architecture.template.md) | Technical architecture and integrations.    |
 | [`modularity.template.md`](modularity.template.md)  | Shared core × modules, boundaries, extension.  |
 | [`standards.template.md`](standards.template.md)    | Code & process standards, testing, CI/CD.      |
+
+> **The Conventions Map is available in every tier.** `conventions.md` (the
+> `EC` registry of cross-cutting engineering/UX defaults) is instantiated
+> regardless of tier, because pagination, async states, authorization, a11y and
+> the like matter even for a lean prototype. What scales with the tier is the
+> **number of entries** the genesis interview proposes from
+> [`../conventions-catalog.md`](../conventions-catalog.md): **slim** for `lean`
+> (the few defaults that fit the project type), **fuller** for `standard` /
+> `full`. The map is grown later with `/forge-add-convention`.
 
 ---
 
@@ -85,7 +95,7 @@ project up a tier later by instantiating the additional templates.
    the first real item. Never leave a stub that contradicts the project.
 4. Use the **ID taxonomy** consistently (defined once in
    [`index.template.md`](index.template.md)): `FR`, `NFR`, `BR`, `CR`, `UC`,
-   `EN`, `ADR`.
+   `EN`, `EC`, `ADR`.
 5. `traceability.md` is **generated** — never hand-edit it (see its template's
    banner).
 

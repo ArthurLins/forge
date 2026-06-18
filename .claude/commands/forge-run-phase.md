@@ -42,6 +42,11 @@ prompt.
       > plus every doc it references in `docs/requirements/` (the source of truth
       > — do **not** invent requirements). Read `forge.config.json` for the
       > project's stack, conventions and CI commands — never hardcode a tool.
+      > Read `docs/requirements/conventions.md` (the **Conventions Map**) and
+      > apply every `EC-` rule whose "Applies to" scope matches this prompt's
+      > work, within its parameters, recording the honored `EC` ids in
+      > code/tests; if a recurring concern is missing from the map, propose it
+      > (note `/forge-add-convention`).
       > Execute prompt `<ID>` in full and satisfy the **Definition of Done**
       > (`prompts/README.md` §5): implementation matches the referenced
       > requirements; critical-path tests pass for any path in `forge.config.json

@@ -32,9 +32,9 @@ the [traceability matrix](traceability.md) is generated from those tags.
 
 <!--
   List ONLY the documents the chosen tier instantiated. Remove rows that do not
-  apply. (lean: vision, functional, decisions, roadmap. standard: + non-functional,
-  data-model, business-rules, traceability. full: + use-cases, interface,
-  compliance, architecture, modularity, standards.)
+  apply. (lean: vision, functional, decisions, roadmap, conventions. standard:
+  + non-functional, data-model, business-rules, traceability. full: + use-cases,
+  interface, compliance, architecture, modularity, standards.)
 -->
 
 | Document                                  | Tier      | Contents                                                        |
@@ -43,6 +43,7 @@ the [traceability matrix](traceability.md) is generated from those tags.
 | [functional.md](functional.md)            | lean      | Functional requirements (`FR`), grouped by area, with flows.    |
 | [decisions.md](decisions.md)              | lean      | Architecture Decision Records (`ADR`), incl. the Stack ADR.     |
 | [roadmap.md](roadmap.md)                  | lean      | Phased plan and milestones.                                     |
+| [conventions.md](conventions.md)          | all tiers | Conventions Map: cross-cutting engineering/UX defaults (`EC`).  |
 | [non-functional.md](non-functional.md)    | standard  | Non-functional requirements (`NFR`) and critical paths.         |
 | [data-model.md](data-model.md)            | standard  | Entities (`EN`), attributes, relationships, data dictionary.    |
 | [business-rules.md](business-rules.md)    | standard  | Business rules (`BR`) and critical paths.                       |
@@ -72,7 +73,17 @@ below).
 | **CR**  | Compliance Requirement       | `compliance.md`     | `CR01`    |
 | **UC**  | Use Case                     | `use-cases.md`      | `UC01`    |
 | **EN**  | Entity (data)                | `data-model.md`     | `EN01`    |
+| **EC**  | Engineering Convention       | `conventions.md`    | `EC-01`   |
 | **ADR** | Architecture Decision Record | `decisions.md`      | `ADR-001` |
+
+> **`EC` vs `NFR` vs standards.** An **`EC`** is an *applied, cross-cutting
+> default* a feature must honor when its **Applies to** scope matches (e.g.
+> "paginate any unbounded list") — checked per change by the
+> [reviewer](../../.claude/agents/reviewer.md). An **`NFR`** is a *project-wide
+> quality target* ("respond in ≤ 2 s"). **`standards.md`** is *code style and
+> process* (naming, commits, CI). The three do not overlap: `EC` is the behavior
+> every feature inherits, `NFR` is the bar the whole system meets, standards are
+> how the code is written.
 
 **Conventions:**
 
@@ -85,3 +96,7 @@ below).
 - Tag implementing code and tests with `@requirement FR01` (and
   `@businessRule BR03` / `@requirement CR02` where applicable) so the
   [traceability matrix](traceability.md) can be generated.
+- An **`EC`** entry lives in [`conventions.md`](conventions.md) and may be tagged
+  on honoring code/tests with `@convention EC-01` for lightweight traceability;
+  its primary enforcement is the [reviewer](../../.claude/agents/reviewer.md),
+  not the matrix.

@@ -54,6 +54,7 @@ repo, in the orchestrator's workspace).
 | `FORGE.md`              | the manifesto — eight non-negotiable principles            |
 | `README.md`             | what Forge is + quickstart (`/forge-init`)                 |
 | `docs/requirements/`    | a project's source of truth (empty until genesis)          |
+| `docs/requirements/conventions.md` | the **Conventions Map** (`EC`): cross-cutting engineering/UX defaults every feature honors — generated at init from [`templates/conventions-catalog.md`](templates/conventions-catalog.md), grown via `/forge-add-convention`, enforced via feature-prompt context + the reviewer |
 | `docs/generated/`       | derived artifacts (status, traceability, …) — never edited |
 | `docs/guides/`          | process guides — see the table below                       |
 | `examples/golden-example/` | the single domain-neutral end-to-end worked feature     |
@@ -123,6 +124,7 @@ harness in dependency order; each is autonomous.
 | **forge-review**      | Independent review of a change before integrating     | `/forge-review`       |
 | **forge-sync-docs**   | Regenerate derived docs (status, traceability, …)     | `/forge-sync-docs`    |
 | **forge-add-requirement** | Add/alter a requirement and propagate the matrix  | `/forge-add-requirement` |
+| **forge-add-convention** | Add/alter an engineering convention (`EC`) in the Conventions Map | `/forge-add-convention` |
 | **forge-new-feature** | Scaffold a feature (pluggable; checklist fallback)    | `/forge-new-feature`  |
 | **forge-new-module**  | Scaffold a module (pluggable; modular projects only)  | `/forge-new-module`   |
 

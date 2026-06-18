@@ -39,7 +39,7 @@
     "generatedDir": "docs/generated"
   },
   "traceability": {
-    "_comment": "Knobs for the traceability generator. 'globs' are source patterns scanned for @requirement/@rule tags (** is recursive). 'tagAliases' maps a link kind to the tag keywords it accepts (defaults: requirement -> @requirement/@req, rule -> @rule/@businessRule). NOTE: 'examples/**/*' is a sensible default for adopters (their example code is real source worth tracing), but it is intentionally OMITTED here in Forge's OWN repo — Forge's only example is the domain-neutral golden example under examples/golden-example/, which is framework PROSE whose @requirement tags illustrate the mechanism and must not pollute Forge's own (empty) matrix. Genesis sets a project's real globs anyway; an adopter who keeps example code as source simply re-adds 'examples/**/*'.",
+    "_comment": "Knobs for the traceability generator. 'globs' are source patterns scanned for @requirement/@rule/@convention tags (** is recursive). 'tagAliases' maps a link kind to the tag keywords it accepts (defaults: requirement -> @requirement/@req, rule -> @rule/@businessRule, convention -> @convention/@conv). NOTE: 'examples/**/*' is a sensible default for adopters (their example code is real source worth tracing), but it is intentionally OMITTED here in Forge's OWN repo — Forge's only example is the domain-neutral golden example under examples/golden-example/, which is framework PROSE whose @requirement tags illustrate the mechanism and must not pollute Forge's own (empty) matrix. Genesis sets a project's real globs anyway; an adopter who keeps example code as source simply re-adds 'examples/**/*'.",
     "globs": [
       "apps/**/*",
       "libs/**/*",
@@ -49,7 +49,8 @@
     ],
     "tagAliases": {
       "requirement": ["requirement", "req"],
-      "rule": ["rule", "businessRule"]
+      "rule": ["rule", "businessRule"],
+      "convention": ["convention", "conv"]
     }
   },
   "docsHooks": [],
