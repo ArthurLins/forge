@@ -46,14 +46,14 @@ forge/
 │  ├─ prompt.template.md      # the self-contained prompt template
 │  ├─ adr.template.md         # architecture-decision-record template
 │  ├─ agent-guide.template.md # the layered AGENTS.md template
-│  └─ ci/                     # CI workflow template (docs-freshness gate, …)
+│  └─ ci/                     # CI gate template (commits · quality · docs-freshness)
 ├─ prompts/                   # the prompt-suite engine + state machine
 ├─ docs/
 │  ├─ requirements/           # YOUR source of truth (seeded by genesis)
 │  ├─ generated/              # derived artifacts (status, traceability, …)
-│  └─ guides/                 # process guides (Definition of Done, …)
+│  └─ guides/                 # process guides (contributing · project map · skills)
 ├─ tools/                     # generators for the derived docs
-├─ examples/                  # a single domain-neutral golden example
+├─ examples/golden-example/   # a single domain-neutral end-to-end example
 └─ scripts/                   # optional helpers
 ```
 
@@ -63,9 +63,26 @@ forge/
   fails if they go stale.
 - **The stack** is recorded once in `forge.config.json` and read everywhere.
 
+## Guides & the golden example
+
+Once you have run genesis, these stack-neutral guides orient you and your agents:
+
+| Read this…                                                           | …to                                                       |
+| -------------------------------------------------------------------- | --------------------------------------------------------- |
+| [`docs/guides/contributing-agents.md`](docs/guides/contributing-agents.md) | follow the contribution loop + the Definition of Done. |
+| [`docs/guides/project-map.md`](docs/guides/project-map.md)           | find where everything lives.                              |
+| [`docs/guides/skills-catalog.md`](docs/guides/skills-catalog.md)     | learn each skill/command and when to use it.              |
+| [`examples/golden-example/`](examples/golden-example/)               | see the whole loop on a generic feature (mental template). |
+
+The **CI gate** Forge installs lives in
+[`templates/ci/`](templates/ci/README.md): a workflow template with **commits**,
+**quality**, and **docs-freshness** jobs whose commands all come from
+`forge.config.json`.
+
 ## Status of this scaffold
 
-This is the **empty, copyable skeleton** plus the orienting documents
-(manifesto, root agent guide, config placeholder). The engine, tools, genesis
-skill, orchestration/review skills, CI gates, and the golden example are added
-by later build steps; empty directories carry a `.gitkeep` until then.
+This is the **copyable skeleton**: the manifesto, root agent guide and config
+placeholder, plus the prompt-suite engine, the derived-docs tools, the genesis /
+planning / orchestration / review skills, the CI gate template, the process
+guides, and a single domain-neutral golden example. `docs/requirements/` is empty
+until `/forge-init` seeds your project's source of truth.

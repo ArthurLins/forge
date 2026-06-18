@@ -9,6 +9,10 @@ Generated from **Conventional Commits**. Versions are marked by SemVer tags (`v*
 
 #### Features
 
+- **forge-guides:** CI gate template + process guides + golden example
+- **forge-skills:** reviewer/docs-sync subagents + review/sync/add-requirement commands
+- **forge-skills:** phase planning + orchestration commands
+- **forge-skills:** genesis interview /forge-init
 - **forge-tools:** derived-docs generators + pluggable sync-docs
 - **forge-engine:** prompt-suite engine + state machine + DoD
 - **forge-requirements:** scalable requirement templates + ID taxonomy

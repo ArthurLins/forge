@@ -1,0 +1,181 @@
+# =============================================================================
+# Forge — CI gate template (provider: GitHub Actions by default).
+#
+# GENERATED-FROM-TEMPLATE. Genesis (`/forge-init`) or the CI-setup step copies
+# this file to the path the chosen CI provider expects (for GitHub Actions:
+# `.github/workflows/ci.yml`) and fills the {{PLACEHOLDERS}} from
+# `forge.config.json`. Nothing about a specific toolchain is hardcoded here:
+#
+#   • the gate COMMANDS come from `forge.config.json → ci.commands`
+#     (`lint`, `typecheck`, `test`, `build`, `docsCheck`);
+#   • the docs-freshness gate runs `forge-sync-docs --check` (the Makefile
+#     target / module invocation that ships with Forge);
+#   • a step with an EMPTY command is SKIPPED cleanly (see the `if:` guards).
+#
+# This file enforces three of Forge's principles in CI:
+#   • Principle 8 — Conventional Commits (the `commits` job);
+#   • Principle 6 — derived docs are code (the `docs-freshness` job);
+#   • the Definition of Done's quality gates (the `quality` job).
+#
+# Provider note: the steps below use GitHub Actions syntax because it is the
+# default. If `forge.config.json → ci.provider` names a different platform,
+# translate the same three jobs (commits / quality / docs-freshness) and the
+# same command sources into that platform's syntax — the SHAPE is what matters,
+# not the YAML dialect. Toolchain names in COMMENTS (Nx, Jest, Node, npm, …)
+# are illustrative examples only; never copy them into the actual commands.
+# =============================================================================
+name: CI
+
+on:
+  push:
+    branches: [{{DEFAULT_BRANCH}}] # e.g. main
+    tags: ['v*'] # SemVer release tags (optional)
+  pull_request:
+    branches: [{{DEFAULT_BRANCH}}]
+
+# Cancel superseded runs of the same ref (saves CI minutes).
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # commits — Conventional Commits check (Forge Principle 8).
+  #
+  # Validates every commit message on the PR against the Conventional Commits
+  # convention. The CHECKER command is project-supplied; a sample config
+  # template ships alongside this file as `commitlint.config.template.*`.
+  # Replace {{COMMIT_LINT_COMMAND}} with the project's checker invocation
+  # (it must read the PR's commit range — see {{COMMIT_RANGE_FROM/TO}}).
+  # ---------------------------------------------------------------------------
+  commits:
+    name: Conventional Commits
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history so the commit range resolves
+
+      # {{TOOLCHAIN_SETUP}}
+      # If the project's commit checker needs a toolchain, set it up here.
+      # (Illustrative example only — adapt to the project's stack, do NOT
+      #  assume Node/npm just because they appear in this comment:)
+      #   - uses: actions/setup-node@v4
+      #     with: { node-version: <runtime version>, cache: <pkg manager> }
+      #   - run: <install command>
+
+      - name: Lint PR commit messages
+        # The checker reads the range base..head. {{COMMIT_LINT_COMMAND}} is the
+        # project's Conventional-Commits checker (filled from the chosen tool).
+        run: >-
+          {{COMMIT_LINT_COMMAND}}
+        env:
+          COMMIT_RANGE_FROM: ${{ github.event.pull_request.base.sha }}
+          COMMIT_RANGE_TO: ${{ github.sha }}
+
+  # ---------------------------------------------------------------------------
+  # quality — format / lint / type-check / test / build.
+  #
+  # EACH step runs the command declared in `forge.config.json → ci.commands`.
+  # A step whose command is EMPTY is skipped (the `if:` guard), so a project
+  # that has not defined, say, a type-check command still passes this job
+  # instead of failing on a blank command. Critical-path tests live inside the
+  # project's `ci.commands.test` (the Definition of Done gates them).
+  # ---------------------------------------------------------------------------
+  quality:
+    name: Lint · Type-check · Test · Build
+    runs-on: ubuntu-latest
+    # Env carries the five commands so the steps stay identical across stacks.
+    # Genesis/CI-setup fills these from forge.config.json → ci.commands.
+    # Leave a value as the empty string ('') to SKIP that gate.
+    env:
+      FORGE_LINT_CMD: '{{CI_COMMANDS_LINT}}'
+      FORGE_TYPECHECK_CMD: '{{CI_COMMANDS_TYPECHECK}}'
+      FORGE_TEST_CMD: '{{CI_COMMANDS_TEST}}'
+      FORGE_BUILD_CMD: '{{CI_COMMANDS_BUILD}}'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # {{TOOLCHAIN_SETUP}}
+      # Set up the project's runtime / package manager / build orchestrator and
+      # install dependencies here, per the stack in forge.config.json.
+      # (Illustrative only — e.g. setup-node + install, a JVM, a Python venv,
+      #  a Go toolchain, an `nx affected` base/head step, … whatever applies.)
+
+      - name: Lint (incl. any boundary/format rules)
+        if: env.FORGE_LINT_CMD != ''
+        run: ${{ env.FORGE_LINT_CMD }}
+
+      - name: Type-check
+        if: env.FORGE_TYPECHECK_CMD != ''
+        run: ${{ env.FORGE_TYPECHECK_CMD }}
+
+      - name: Test (incl. critical paths)
+        if: env.FORGE_TEST_CMD != ''
+        run: ${{ env.FORGE_TEST_CMD }}
+
+      - name: Build
+        if: env.FORGE_BUILD_CMD != ''
+        run: ${{ env.FORGE_BUILD_CMD }}
+
+  # ---------------------------------------------------------------------------
+  # docs-freshness — derived docs are code (Forge Principle 6).
+  #
+  # Regenerates every derived artifact and FAILS on any drift. The check is the
+  # Forge sync-docs orchestrator in --check mode, exposed as the project's
+  # `forge.config.json → ci.commands.docsCheck` (default below). It re-derives
+  # STATUS.md, the traceability matrix and the changelog — plus any stack
+  # `docsHooks` the project declared — and exits non-zero (printing a diff) when
+  # the committed `docs/generated/` or `prompts/STATUS.md` is stale.
+  #
+  # The orchestrator runs on Python 3 only (no project stack required), so this
+  # gate works on a fresh checkout. If the project declared stack `docsHooks`
+  # (e.g. an API-contract build), set up that toolchain in {{TOOLCHAIN_SETUP}}
+  # so the hooks can run in --check mode.
+  # ---------------------------------------------------------------------------
+  docs-freshness:
+    name: Docs freshness (STATUS · traceability · changelog · stack hooks)
+    runs-on: ubuntu-latest
+    env:
+      # Default: the Forge sync-docs check. Genesis fills ci.commands.docsCheck;
+      # when it is empty, this default still runs the core generators' check.
+      FORGE_DOCS_CHECK_CMD: '{{CI_COMMANDS_DOCSCHECK}}'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history: the changelog is derived from the commit log.
+          fetch-depth: 0
+
+      - name: Set up Python (sync-docs runtime — no project stack needed)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      # {{TOOLCHAIN_SETUP_FOR_DOCS_HOOKS}}
+      # Only needed if forge.config.json declares stack `docsHooks` that run in
+      # --check mode (e.g. regenerating an API contract). Otherwise omit.
+
+      - name: Regenerate derived docs and fail on drift
+        # Falls back to the shipped Forge target if the project left docsCheck
+        # empty. Both invoke the same orchestrator in --check mode.
+        run: |
+          if [ -n "${FORGE_DOCS_CHECK_CMD}" ]; then
+            eval "${FORGE_DOCS_CHECK_CMD}"
+          else
+            make forge-sync-docs-check
+          fi
+
+      - name: Publish the traceability matrix
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: traceability-matrix
+          # Path follows forge.config.json → docs.generatedDir (default below).
+          path: '{{DOCS_GENERATED_DIR}}/traceability.md'
+          if-no-files-found: warn

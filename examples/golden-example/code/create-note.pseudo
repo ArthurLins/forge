@@ -1,0 +1,40 @@
+# Golden example — the CODE link (illustrative, stack-light pseudocode).
+#
+# This is link #3 of the loop. It is intentionally language-agnostic: no real
+# framework, datastore, or runtime. A real project realizes the SAME SHAPE in its
+# chosen stack (forge.config.json). The @requirement / @rule tags are what the
+# traceability tool scans — keep them on the implementing code AND its test.
+#
+# Implements FR01 (manage notes) and enforces BR01 (non-empty title).
+# @requirement FR01
+# @rule BR01
+
+# --- pure domain rule (BR01) ------------------------------------------------
+# A note must have a non-empty title; this is the single critical invariant.
+# Pure and trivially testable — no I/O, no framework.
+# @rule BR01
+function validateTitle(title):
+    trimmed = trim(title)
+    if isEmpty(trimmed):
+        raise ValidationError("title must not be empty")   # BR01
+    return trimmed
+
+# --- create a note (FR01.1) -------------------------------------------------
+# @requirement FR01
+function createNote(currentUser, input):
+    title = validateTitle(input.title)        # enforce BR01 before persisting
+    note = {
+        id:        newId(),                   # unique identifier (FR01 step 3)
+        ownerId:   currentUser.id,
+        title:     title,
+        body:      input.body or "",          # body is optional
+        createdAt: now(),
+    }
+    repository.save(note)
+    return note
+
+# --- list a user's notes, most recent first (FR01.2) ------------------------
+# @requirement FR01
+function listNotes(currentUser):
+    notes = repository.findByOwner(currentUser.id)
+    return sortByDescending(notes, key = note -> note.createdAt)

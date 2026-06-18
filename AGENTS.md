@@ -55,7 +55,27 @@ repo, in the orchestrator's workspace).
 | `README.md`             | what Forge is + quickstart (`/forge-init`)                 |
 | `docs/requirements/`    | a project's source of truth (empty until genesis)          |
 | `docs/generated/`       | derived artifacts (status, traceability, …) — never edited |
-| `docs/guides/`          | process guides (filled later in the build)                 |
+| `docs/guides/`          | process guides — see the table below                       |
+| `examples/golden-example/` | the single domain-neutral end-to-end worked feature     |
+
+## Process guides
+
+These generalize Forge's methodology into stack-neutral guidance. Read the one
+that fits the task:
+
+| Guide                                                          | For                                                       |
+| ------------------------------------------------------------- | --------------------------------------------------------- |
+| [`docs/guides/contributing-agents.md`](docs/guides/contributing-agents.md) | The full contribution loop + the Definition of Done. |
+| [`docs/guides/project-map.md`](docs/guides/project-map.md)    | Where everything lives (source of truth → prompts → code → derived artifacts). |
+| [`docs/guides/skills-catalog.md`](docs/guides/skills-catalog.md) | The skills/commands catalog + the "unstructured request" rule. |
+| [`examples/golden-example/`](examples/golden-example/)        | The end-to-end loop on a generic feature (mental template). |
+
+## The CI gate
+
+The CI gate template lives in [`templates/ci/`](templates/ci/README.md): three
+jobs — **commits** (Conventional Commits), **quality** (lint · type-check · test
+· build), **docs-freshness** (`forge-sync-docs --check`). Every command comes
+from `forge.config.json`; an undefined step skips cleanly.
 
 ## Non-negotiable rules
 
@@ -88,8 +108,9 @@ harness in dependency order; each is autonomous.
 ## Skills catalog
 
 > Prefer a skill over a manual procedure — it keeps the standard and updates the
-> derived docs for you. Skills are filled in during the build (F5–F7); the table
-> below is the intended catalog.
+> derived docs for you. Full "when to use" / "how to call" details and the
+> recommended flows are in
+> [`docs/guides/skills-catalog.md`](docs/guides/skills-catalog.md).
 
 | Skill / command       | When to use                                           | How to call           |
 | --------------------- | ----------------------------------------------------- | --------------------- |
@@ -103,6 +124,16 @@ harness in dependency order; each is autonomous.
 | **forge-add-requirement** | Add/alter a requirement and propagate the matrix  | `/forge-add-requirement` |
 | **forge-new-feature** | Scaffold a feature (pluggable; checklist fallback)    | `/forge-new-feature`  |
 | **forge-new-module**  | Scaffold a module (pluggable; modular projects only)  | `/forge-new-module`   |
+
+### Unstructured request? Ask, then offer the skills
+
+When a developer sends an **unstructured** request (vague, broad, or one that maps
+to a skill above), do **not** start executing immediately. First **ask** what
+they want and offer two options: **(a)** continue free-form, or **(b)** use a
+skill. Only **after asking** — if they pick a skill or are unsure — show the
+catalog above (with "when to use" / "how to call") and help them choose. If they
+choose free-form, proceed while honoring the eight principles. Never list the
+skills before asking.
 
 ## Language & naming conventions
 

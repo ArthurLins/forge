@@ -1,0 +1,35 @@
+# Golden example — the TEST link (illustrative, stack-light pseudocode).
+#
+# This is link #4 of the loop: the critical-path test for BR01. The file name
+# carries `.spec.` so the traceability tool counts it as a TEST (the matrix needs
+# at least one tagged code file AND one tagged test file to mark a requirement
+# `covered`). It tags the same ids as the implementation.
+#
+# Covers the critical path BR01 (reject empty title) plus the FR01 happy path.
+# @requirement FR01
+# @rule BR01
+
+describe "createNote":
+
+    # --- BR01: the critical path -------------------------------------------
+    # @rule BR01
+    test "rejects an empty or whitespace-only title (BR01)":
+        for badTitle in ["", "   ", "\t"]:
+            expectError(ValidationError, () ->
+                createNote(user, { title: badTitle, body: "x" }))
+
+    # --- FR01.1: the happy path --------------------------------------------
+    # @requirement FR01
+    test "creates a note with a valid title and assigns an id":
+        note = createNote(user, { title: "Buy milk", body: "" })
+        expect(note.id).toBeDefined()
+        expect(note.title).toEqual("Buy milk")
+        expect(note.ownerId).toEqual(user.id)
+
+    # --- FR01.2: list ordering ---------------------------------------------
+    # @requirement FR01
+    test "lists notes most recent first":
+        createNote(user, { title: "first" })
+        createNote(user, { title: "second" })
+        titles = map(listNotes(user), n -> n.title)
+        expect(titles).toEqual(["second", "first"])
