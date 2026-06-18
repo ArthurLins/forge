@@ -77,6 +77,50 @@ with project size.
 | ------- | -------- | ------- | ------------------------------------------------------------- |
 | `paths` | string[] | `[]`    | Named flows that **must** be covered by tests (gated by the DoD). **None** by default. |
 
+### `docs` (object)
+
+Where the derived-docs generators write their output.
+
+| Field          | Type   | Default          | Meaning                                                      |
+| -------------- | ------ | ---------------- | ------------------------------------------------------------ |
+| `generatedDir` | string | `docs/generated` | Directory for generated artifacts (traceability matrix, changelog, and any stack-hook output). Committed and CI-checked. |
+
+### `traceability` (object)
+
+Knobs for the traceability generator (`tools/forge_tools/traceability.py`).
+
+| Field        | Type     | Default                                                                 | Meaning                                                                                       |
+| ------------ | -------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `globs`      | string[] | `["apps/**/*","libs/**/*","src/**/*","packages/**/*","modules/**/*","examples/**/*"]` | Repo-relative source patterns scanned for tags. `**` is recursive; `*` does not cross `/`. The defaults are the conventional locations a project's **own** source lives; Forge's framework folders (`templates/`, `tools/`, `docs/`) are excluded so tag *examples* in Forge's prose are not picked up. |
+| `tagAliases` | object   | `{"requirement":["requirement","req"],"rule":["rule","businessRule"]}`  | Maps a **link kind** to the tag keywords that record it. `requirement` links a requirement id (`FR`/`NFR`/`CR`/`UC`/`EN`); `rule` links a business rule (`BR`). Project-declared aliases are **merged on top of** the defaults, so adding an alias never drops the built-in ones. |
+
+> Generalized from PedPlus's hardcoded `@requirement RFxx` / `@businessRule
+> RNxx`. In Forge the tag keywords and the scanned globs are config, not code.
+
+### `docsHooks` (array) — OPTIONAL stack plugins
+
+The **extension point** that keeps `sync-docs` stack-neutral. The core
+generators (status, traceability, changelog) always run; **stack-specific**
+derived docs (e.g. building an OpenAPI contract or regenerating a typed API
+client) are declared here as shell commands and run by `forge-sync-docs`
+**after** the core. With `docsHooks: []` (the default) the orchestrator runs
+the core only and still succeeds — so Forge never assumes a stack.
+
+Each entry:
+
+| Field     | Type   | Required | Meaning                                                                                   |
+| --------- | ------ | -------- | ----------------------------------------------------------------------------------------- |
+| `name`    | string | yes      | Label shown in logs.                                                                      |
+| `command` | string | yes      | Shell command that **regenerates** the artifact (run in normal mode).                     |
+| `check`   | string | no       | Shell command run in `--check` mode that must fail if the committed artifact is stale. If omitted, `--check` re-runs `command` (idempotent generators leave the tree unchanged when fresh). |
+| `cwd`     | string | no       | Working directory for the command, relative to the repo root. Defaults to the repo root.  |
+
+> `_docsHooksExample` in the shipped config is an inert documentation block
+> (note the leading underscore): copy an entry from it into `docsHooks[]` and
+> fill in your stack's commands. PedPlus's OpenAPI build and Hey-API client
+> generation are exactly the kind of step that becomes a hook here instead of
+> being hardcoded.
+
 ### `ci` (object)
 
 The continuous-integration profile.
@@ -91,5 +135,9 @@ The continuous-integration profile.
 - **No stack** is assumed (`stack.*` null / empty).
 - **No compliance** regimes (`compliance.regimes: []`).
 - **No critical paths** (`criticalPaths.paths: []`).
+- **No stack docs hooks** (`docsHooks: []`) — `sync-docs` runs the core
+  generators only until a project declares one.
+- `docs.generatedDir` is `docs/generated`; `traceability.globs` /
+  `traceability.tagAliases` carry stack-neutral defaults.
 - `requirementTiers.selected` is empty until genesis chooses a tier.
 - Conventions default to English docs/code and Forge's casing rules.

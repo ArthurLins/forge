@@ -1,9 +1,11 @@
-# Status
+<!-- GENERATED from prompts/state.json by tools/forge_tools/status.py.
+     Do not edit by hand: run `make forge-status` or `make forge-sync-docs`. -->
 
-> **Generated file — do not edit by hand.** This is a human-readable view of
-> [`state.json`](state.json). The status tool (added in a later build step)
-> regenerates it; you can also refresh it via `/forge-sync-docs`. The source of
-> truth for tracking is `state.json`; the plan index is [`ROADMAP.md`](ROADMAP.md).
+# Project — Status
+
+> Human-readable view of [`state.json`](state.json). **Generated — do not edit by hand.** The plan index is [`ROADMAP.md`](ROADMAP.md).
+
+**Updated:** — · **Legend:** `[ ]` pending · `[~]` in_progress · `[x]` blocked · `[v]` done
 
 ## Summary
 
@@ -15,11 +17,9 @@
 | Blocked | 0 |
 | Pending | 0 |
 
-## Prompts
+**Overall progress:** 0/0 done (0%)
 
-| ID | Phase | Title | Status | Depends on | Commit |
-| -- | ----- | ----- | ------ | ---------- | ------ |
-| _none yet_ | | | | | |
+**Next eligible:** DONE — every prompt is complete.
 
 ---
 

@@ -34,6 +34,41 @@
     "_comment": "Compliance regimes this project must honor (e.g. a privacy or certification standard). Empty by default — no compliance assumed.",
     "regimes": []
   },
+  "docs": {
+    "_comment": "Where the derived-docs generators write their output. Stack-neutral default.",
+    "generatedDir": "docs/generated"
+  },
+  "traceability": {
+    "_comment": "Knobs for the traceability generator. 'globs' are source patterns scanned for @requirement/@rule tags (** is recursive). 'tagAliases' maps a link kind to the tag keywords it accepts (defaults: requirement -> @requirement/@req, rule -> @rule/@businessRule).",
+    "globs": [
+      "apps/**/*",
+      "libs/**/*",
+      "src/**/*",
+      "packages/**/*",
+      "modules/**/*",
+      "examples/**/*"
+    ],
+    "tagAliases": {
+      "requirement": ["requirement", "req"],
+      "rule": ["rule", "businessRule"]
+    }
+  },
+  "docsHooks": [],
+  "_docsHooksExample": {
+    "_comment": "OPTIONAL stack plugins run by forge-sync-docs AFTER the core generators. Leave docsHooks [] when a project has no stack-specific derived docs. Each hook is a shell command the project supplies. 'check' (optional) runs in --check mode; if absent, the writer command is re-run (idempotent). Copy an entry into docsHooks[] and edit.",
+    "examples": [
+      {
+        "name": "openapi",
+        "command": "<shell command that regenerates the API contract into docs.generatedDir>",
+        "check": "<shell command that fails if the committed contract is stale>",
+        "cwd": "."
+      },
+      {
+        "name": "client-generate",
+        "command": "<shell command that regenerates a typed API client from the contract>"
+      }
+    ]
+  },
   "criticalPaths": {
     "_comment": "Named flows that MUST be covered by tests (the Definition of Done gates these). Empty by default.",
     "paths": []
