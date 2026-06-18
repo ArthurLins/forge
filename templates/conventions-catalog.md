@@ -252,6 +252,25 @@
 - **Rationale:** N+1 access is the most common silent performance cliff as data
   grows.
 
+### EC-D7 — Optimistic mutations reconcile and roll back
+
+- **Rule (intent):** When a mutation changes data that is already shown from a
+  cache (an inline edit, a list-row action, a toggle, a reassignment), apply the
+  change optimistically, reconcile against the server outcome on settle
+  (invalidate/refetch the affected query), and **roll back to the pre-mutation
+  snapshot with a user-visible message if it fails** — so the view never strands a
+  stale or phantom value after a failed or concurrent write.
+- **Applies to:** any mutation whose effect is reflected in already-fetched or
+  cached data shown to the user.
+- **Parameters:** `reconcileOn = settle` (invalidate/refetch on success and
+  error); `rollbackOnError = true`.
+- **Relevant for:** UI, data-heavy.
+- **Rationale:** optimistic updates make the UI feel instant, but without
+  reconciliation and rollback a failed or concurrent write leaves the user acting
+  on data that was never persisted. Pairs with EC-D2 (cache invalidation) and
+  EC-F5 (idempotency); distinct from EC-A3, which covers *fetch* errors, not
+  *write* reconciliation.
+
 ---
 
 ## (d) Async UI states
