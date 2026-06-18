@@ -201,6 +201,27 @@ def scan(globs: List[str], aliases: Dict[str, List[str]]) -> Dict[str, Dict[str,
     return index
 
 
+def _resolve_to_declared(rid: str, declared_ids: Set[str]) -> str:
+    """Map a tagged id to the declared requirement it belongs to.
+
+    A tag may point at a **dotted sub-item** (``FR01.5``) whose parent
+    (``FR01``) is the declared matrix row — the templates and the golden example
+    tag code with the parent id, but a project may tag a finer sub-id. We roll a
+    sub-id up to the nearest **declared** ancestor (strip ``.x`` suffixes one at a
+    time) so the tag counts toward that requirement's coverage instead of being
+    reported as undeclared. If the id itself is declared, it maps to itself; if no
+    ancestor is declared, it is returned unchanged (and treated as unknown).
+    """
+    if rid in declared_ids:
+        return rid
+    parent = rid
+    while "." in parent:
+        parent = parent.rsplit(".", 1)[0]
+        if parent in declared_ids:
+            return parent
+    return rid
+
+
 def _status_for(code: Set[str], tests: Set[str]) -> str:
     if code and tests:
         return "covered"
@@ -223,7 +244,18 @@ def build_report() -> str:
 
     declared: List[Requirement] = parse_requirements()
     declared_ids = {r.id for r in declared}
-    index = scan(globs, aliases)
+    raw_index = scan(globs, aliases)
+
+    # Roll dotted sub-item tags (FR01.5) up to their declared parent (FR01) so
+    # they count toward that requirement's coverage rather than being flagged as
+    # undeclared. Ids with no declared ancestor pass through unchanged and are
+    # reported as unknown below.
+    index: Dict[str, Dict[str, Set[str]]] = {}
+    for rid, bucket in raw_index.items():
+        target = _resolve_to_declared(rid, declared_ids)
+        dest = index.setdefault(target, {"code": set(), "tests": set()})
+        dest["code"] |= bucket["code"]
+        dest["tests"] |= bucket["tests"]
 
     rows: List[Tuple[str, str, Set[str], Set[str], str]] = []
     covered = 0

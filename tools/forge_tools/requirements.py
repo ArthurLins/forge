@@ -10,6 +10,13 @@ use —
                                                   entities)
   * table row     ``| **BR01** | Rule | ... |``  (business rules)
 
+A requirement's **declared id** is its top-level id (``FR01``, ``BR01``). Dotted
+sub-items (``FR01.1``, ``NFR01.2``) listed under a heading are *part of* their
+parent, not separate matrix rows — matching the templates and the golden example,
+which tag implementing code with the parent id (``@requirement FR01``). A tag that
+points at a sub-id is **rolled up to the parent** by the traceability tool, so it
+still resolves to a declared requirement (it is not reported as "undeclared").
+
 Each requirement document maps to a prefix; the parser reads whichever
 documents exist (a fresh checkout may have none) and returns the declared IDs
 with their titles and the source document.

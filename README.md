@@ -86,3 +86,8 @@ placeholder, plus the prompt-suite engine, the derived-docs tools, the genesis /
 planning / orchestration / review skills, the CI gate template, the process
 guides, and a single domain-neutral golden example. `docs/requirements/` is empty
 until `/forge-init` seeds your project's source of truth.
+
+> **Verified end-to-end on 2026-06-18.** The full loop — `/forge-init` → plan →
+> run → review → sync — was dogfooded on a throwaway sample project and passed.
+> See the worked walkthrough in
+> [`docs/guides/selftest-report.md`](docs/guides/selftest-report.md).
