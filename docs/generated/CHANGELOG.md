@@ -9,6 +9,7 @@ Generated from **Conventional Commits**. Versions are marked by SemVer tags (`v*
 
 #### Features
 
+- **forge-skills:** forge-freechat — safe fast lane for quick changes
 - **forge-guides:** CI gate template + process guides + golden example
 - **forge-skills:** reviewer/docs-sync subagents + review/sync/add-requirement commands
 - **forge-skills:** phase planning + orchestration commands

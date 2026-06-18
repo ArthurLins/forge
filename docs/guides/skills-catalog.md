@@ -27,6 +27,7 @@ the matching skill (e.g. `forge-plan-phase`).
 | **forge-run**             | command | Execute the next eligible prompt(s) — one, N, or all — each in an isolated subagent.                  | `/forge-run [1\|N\|all]`   |
 | **forge-run-phase**       | command | Execute a whole phase; each prompt runs in an isolated subagent (clean context).                      | `/forge-run-phase <n>`     |
 | **forge-next**            | command | Execute only the next eligible prompt (safe, single-step mode).                                       | `/forge-next`              |
+| **forge-freechat**        | skill   | The fast lane for a **quick, colloquial change** — hotfix, typo, color/copy/config tweak. Applies the smallest safe edit, runs the affected gates, syncs docs, logs it, and commits. Refuses & redirects anything that needs a new requirement or scope change. | `/forge-freechat`          |
 | **forge-status**          | command | Show suite progress (done/total), the next eligible prompt, and any blocked prompts. Read-only.      | `/forge-status`            |
 | **forge-review**          | command | Run the independent `reviewer` subagent over a diff/branch/commit before integrating. Read-only.     | `/forge-review [<scope>]`  |
 | **forge-sync-docs**       | command | Regenerate derived docs (STATUS, traceability, changelog) + any declared stack `docsHooks`.          | `/forge-sync-docs`         |
@@ -45,6 +46,10 @@ the matching skill (e.g. `forge-plan-phase`).
   `/forge-run-phase <n>` → `/forge-review`.
 - **Continue existing work:** `/forge-status` → `/forge-run-phase <n>` (or
   `/forge-next`) → `/forge-review`.
+- **Quick hotfix / small tweak:** `/forge-freechat` — describe the change in
+  plain language; it applies the smallest safe edit, runs the affected gates,
+  syncs docs, logs it, and commits (and refuses + redirects if the change really
+  needs a requirement or a phase).
 - **Change a requirement:** `/forge-add-requirement` (keeps
   `docs/requirements/` and the matrix coherent) → plan/implement.
 - **Add a new area/module (modular projects):** `/forge-new-module <name>` →

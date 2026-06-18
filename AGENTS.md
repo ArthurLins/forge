@@ -119,6 +119,7 @@ harness in dependency order; each is autonomous.
 | **forge-run**         | Execute the next eligible prompt(s)                   | `/forge-run`          |
 | **forge-run-phase**   | Execute a whole phase, each prompt in a subagent      | `/forge-run-phase`    |
 | **forge-next**        | Execute only the next eligible prompt (safe, 1×)      | `/forge-next`         |
+| **forge-freechat**    | Quick colloquial change / hotfix (small, no new requirement) | `/forge-freechat` |
 | **forge-review**      | Independent review of a change before integrating     | `/forge-review`       |
 | **forge-sync-docs**   | Regenerate derived docs (status, traceability, …)     | `/forge-sync-docs`    |
 | **forge-add-requirement** | Add/alter a requirement and propagate the matrix  | `/forge-add-requirement` |
