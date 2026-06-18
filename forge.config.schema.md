@@ -140,10 +140,22 @@ Each entry:
 
 The continuous-integration profile.
 
-| Field      | Type   | Meaning                                                           |
-| ---------- | ------ | ----------------------------------------------------------------- |
-| `provider` | string | The CI provider/platform. Empty until set.                        |
-| `commands` | object | Shell commands for the gates: `lint`, `typecheck`, `test`, `build`, `docsCheck`. Filled by genesis / the CI step. |
+| Field              | Type    | Default | Meaning                                                           |
+| ------------------ | ------- | ------- | ----------------------------------------------------------------- |
+| `provider`         | string  | `""`    | The CI provider/platform. Empty until set.                        |
+| `strictValidation` | boolean | `false` | When `true`, the project opts into a **required static-integrity check** in CI: a PR merges only if `forge-validate` passes (the project's prompt state machine, requirement tags, Conventions Map, config and derived docs are all intact). Selected at `/forge-init`; when on, genesis installs `templates/ci/forge-validate.yml.template` and the developer marks that check **required** in branch protection. Default `false` (off). |
+| `commands`         | object  | —       | Shell commands for the gates. Filled by genesis / the CI step.    |
+
+`ci.commands` fields:
+
+| Field       | Default                     | Meaning                                                       |
+| ----------- | --------------------------- | ------------------------------------------------------------- |
+| `lint`      | `""`                        | Lint command (incl. any boundary/format rules).               |
+| `typecheck` | `""`                        | Type-check command.                                           |
+| `test`      | `""`                        | Test command (incl. critical paths).                          |
+| `build`     | `""`                        | Build command.                                                |
+| `docsCheck` | `""`                        | Docs-freshness gate (defaults to the Forge sync-docs check).  |
+| `validate`  | `"make forge-validate-check"` | The static-integrity gate run when `strictValidation` is `true`. The shipped default invokes `forge-validate` via the Makefile; a project may override it (e.g. with the direct `PYTHONPATH=tools python3 -m forge_tools validate --check` invocation). |
 
 ## Defaults shipped by the placeholder
 

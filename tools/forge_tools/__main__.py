@@ -6,6 +6,7 @@ Commands:
   traceability   regenerate the traceability matrix
   changelog      regenerate the changelog
   sync-docs      run the full orchestrator (core generators + stack hooks)
+  validate       statically validate a Forge-built project's integrity
   selfcheck      enforce Forge's own constitution (self-only gate)
   export         produce a clean adopter copy of Forge (self-only)
 
@@ -21,7 +22,8 @@ from typing import List
 def _usage() -> int:
     sys.stderr.write(
         "usage: python3 -m forge_tools "
-        "{status|traceability|changelog|sync-docs|selfcheck|export} [flags]\n"
+        "{status|traceability|changelog|sync-docs|validate|selfcheck|export} "
+        "[flags]\n"
     )
     return 2
 
@@ -48,6 +50,10 @@ def main(argv: List[str]) -> int:
         from . import sync_docs
 
         return sync_docs.main(rest)
+    if command == "validate":
+        from . import validate
+
+        return validate.main(rest)
     if command == "selfcheck":
         from . import selfcheck
 

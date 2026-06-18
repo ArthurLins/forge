@@ -148,6 +148,7 @@ skills catalog (the selfcheck gate exempts it from registration-parity).
 | **forge-freechat**    | Quick colloquial change / hotfix (small, no new requirement) | `/forge-freechat` |
 | **forge-status**      | Show suite progress + the next eligible prompt (read-only) | `/forge-status`    |
 | **forge-review**      | Independent review of a change before integrating     | `/forge-review`       |
+| **forge-validate**    | Statically validate the project's structural integrity (state machine, tags, conventions, config, docs) | `/forge-validate` |
 | **forge-sync-docs**   | Regenerate derived docs (status, traceability, …)     | `/forge-sync-docs`    |
 | **forge-add-requirement** | Add/alter a requirement and propagate the matrix  | `/forge-add-requirement` |
 | **forge-add-convention** | Add/alter an engineering convention (`EC`) in the Conventions Map | `/forge-add-convention` |

@@ -102,7 +102,11 @@ developer is unsure, but never impose a choice):
 4. **The stack** — language, runtime, frameworks, datastore, package manager,
    repo layout (single package / monorepo + which tool), and **CI provider**.
    If the developer is unsure, **offer a few neutral options** and let them
-   pick; record "undecided" as an open question rather than guessing.
+   pick; record "undecided" as an open question rather than guessing. Also ask:
+   **Enable strict structural-validation CI** (a PR merges only if the project is
+   statically intact — its prompt state machine, requirement tags, Conventions
+   Map, config and derived docs all valid)? Default **no**. (Drives
+   `ci.strictValidation` and, if yes, installing the validate workflow in Step 4.)
 5. **Compliance** — any regime the project must honor (a privacy, security, or
    certification standard)? Default: none. (Drives `compliance.regimes` and,
    at `full` tier, `compliance.md`.)
@@ -178,6 +182,16 @@ This is Principle 2, and it must happen **before** Step 5.
      the CI step (F8) to fill, and record that as an open question. `docsCheck`
      should be the Forge docs-freshness gate (e.g.
      `make forge-sync-docs-check`).
+   - `ci.strictValidation` and `ci.commands.validate` — from the strict-
+     validation answer (interview question 4). **If the developer said yes:** set
+     `ci.strictValidation: true`, keep `ci.commands.validate` (default
+     `make forge-validate-check`), **install** the strict-validation workflow by
+     copying `templates/ci/forge-validate.yml.template` into
+     `.github/workflows/` (filling `{{DEFAULT_BRANCH}}` and
+     `{{CI_COMMANDS_VALIDATE}}`), and **tell the developer to mark the "Project
+     integrity" check required** in branch protection. **If they said no
+     (default):** leave `ci.strictValidation: false` and do not install the
+     workflow (the combined `forge-ci.yml`'s `validate` job stays gated off).
    - `traceability.globs` — adjust to where **this** project's source will live
      (e.g. the chosen repo layout); keep the neutral defaults if unsure.
    - `docsHooks` — add a hook **only** if the project already has a

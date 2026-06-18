@@ -179,3 +179,45 @@ jobs:
           # Path follows forge.config.json → docs.generatedDir (default below).
           path: '{{DOCS_GENERATED_DIR}}/traceability.md'
           if-no-files-found: warn
+
+  # ---------------------------------------------------------------------------
+  # validate — OPTIONAL static structural-integrity gate.
+  #
+  # DISABLED BY DEFAULT. Enable it only when `forge.config.json →
+  # ci.strictValidation` is true (selected at /forge-init). When enabled, it runs
+  # the project's `ci.commands.validate` (default `make forge-validate-check`),
+  # which fails on a broken prompt state machine, a dangling `@requirement` tag,
+  # a malformed Conventions Map, an invalid config, or stale derived docs — so a
+  # PR merges only when the project is statically intact.
+  #
+  # To enable in this combined workflow: UNCOMMENT the steps below, then mark the
+  # "Project integrity" check REQUIRED in branch protection. (Adopters who prefer
+  # a dedicated workflow can instead install
+  # `templates/ci/forge-validate.yml.template`, which also covers merge_group.)
+  # ---------------------------------------------------------------------------
+  validate:
+    name: Project integrity
+    # Gate: keep this job a clean no-op unless strict validation is turned on.
+    # Replace the literal 'false' with `${{ vars.FORGE_STRICT_VALIDATION }}` (a
+    # repo variable mirroring ci.strictValidation) to drive it from config.
+    if: false # ← set true / drive from ci.strictValidation to enable
+    runs-on: ubuntu-latest
+    env:
+      FORGE_VALIDATE_CMD: '{{CI_COMMANDS_VALIDATE}}'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python (validate runtime — no project stack needed)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Validate the project's structural integrity
+        run: |
+          if [ -n "${FORGE_VALIDATE_CMD}" ]; then
+            eval "${FORGE_VALIDATE_CMD}"
+          else
+            make forge-validate-check
+          fi

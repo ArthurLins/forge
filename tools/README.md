@@ -65,6 +65,39 @@ PYTHONPATH=tools python3 -m forge_tools status              # one generator
 PYTHONPATH=tools python3 -m forge_tools traceability --out docs/generated/traceability.md
 ```
 
+## Project integrity gate — `forge-validate` (distributable)
+
+`forge_tools/validate.py` is a **distributable** static validator (shipped to
+adopters, unlike the self-only `selfcheck.py` below). It asserts that a
+**Forge-built project** is structurally intact, reading every path and knob from
+`forge.config.json`. It runs on Python 3 alone and **PASSES trivially on an empty
+/ pre-genesis project** — with no prompts and no requirements there is nothing to
+violate.
+
+| Task                         | Does                                                                |
+| ---------------------------- | ------------------------------------------------------------------- |
+| `make forge-validate`        | human-readable integrity report (also `make forge-validate-report`) |
+| `make forge-validate-check`  | fail (non-zero) if the project is not statically intact (CI gate; also `forge-validate:check`) |
+
+Equivalently: `PYTHONPATH=tools python3 -m forge_tools validate --check`.
+
+The hard checks:
+
+| Check | Asserts |
+| ----- | ------- |
+| **state-integrity** | `prompts/state.json`: unique ids; every `file` exists; every `dependsOn` id exists; **no dependency cycles**; valid statuses; `prompts/next_prompt.py` runs cleanly. |
+| **requirement-tag-integrity** | every `@requirement`/`@rule` id tagged in source (per `traceability.globs`/`tagAliases`) is **declared** in `docs/requirements/`. A dangling tag fails; a declared requirement with no implementing tag is a **warning**. |
+| **conventions-integrity** | only if `docs/requirements/conventions.md` exists: each `EC-` entry has the required fields (Category, Rule, Applies to, Status) and ids are unique. |
+| **config-integrity** | `forge.config.json` is valid JSON with the expected top-level keys. |
+| **docs-freshness** | derived docs are not stale (reuses the `sync-docs --check` logic). |
+
+Warnings never fail; `--check` exits non-zero only on a hard failure. Adopters can
+make this a **required status check** — see
+[`templates/ci/README.md`](../templates/ci/README.md) (strict validation) and the
+`/forge-validate` command. The command is registered in the skills catalog like
+every other distributable command (the selfcheck registration-parity gate enforces
+that).
+
 ## Traceability tags
 
 A generalization of stack-specific tag conventions (such as `@requirement RFxx` /

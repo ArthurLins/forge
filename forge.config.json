@@ -74,14 +74,16 @@
     "paths": []
   },
   "ci": {
-    "_comment": "Continuous-integration profile. provider and commands filled by genesis/F8.",
+    "_comment": "Continuous-integration profile. provider and commands filled by genesis/F8. strictValidation (default false) opts into a REQUIRED static-integrity check at /forge-init; when true, ci.commands.validate runs in CI as a gate that blocks merge unless the project is statically intact.",
     "provider": "",
+    "strictValidation": false,
     "commands": {
       "lint": "",
       "typecheck": "",
       "test": "",
       "build": "",
-      "docsCheck": ""
+      "docsCheck": "",
+      "validate": "make forge-validate-check"
     }
   }
 }

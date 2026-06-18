@@ -1,0 +1,86 @@
+# =============================================================================
+# Forge — STRICT structural-validation gate (provider: GitHub Actions by default).
+#
+# GENERATED-FROM-TEMPLATE. Install this workflow ONLY when strict validation is
+# enabled (`forge.config.json → ci.strictValidation: true`, selected at
+# `/forge-init`). It runs the project's static-integrity validator on every PR,
+# every push to the default branch, and every merge-queue check, so a PR can only
+# merge when the project is STATICALLY INTACT — the prompt state machine, the
+# requirement tags, the Conventions Map, the config, and the derived docs.
+#
+# Mark this check REQUIRED in branch protection (Settings → Branches → Branch
+# protection rules → "Require status checks to pass before merging" → select
+# "Project integrity"). Without that, the workflow runs but does not block merge.
+#
+# Nothing about a specific toolchain is hardcoded: the validator runs on Python 3
+# alone (the neutral runtime the prompt-suite engine already requires), and the
+# COMMAND comes from `forge.config.json → ci.commands.validate`
+# (default: `make forge-validate-check`). Fill the {{PLACEHOLDERS}} from
+# `forge.config.json`.
+#
+# Provider note: the steps below use GitHub Actions syntax because it is the
+# default. If `forge.config.json → ci.provider` names a different platform,
+# translate the SAME single job (set up Python 3, run the validate command on PR
+# + push-to-main + merge-queue) into that platform's syntax — the shape is what
+# matters, not the YAML dialect.
+# =============================================================================
+name: Validate
+
+on:
+  pull_request:
+    branches: [{{DEFAULT_BRANCH}}] # e.g. main
+  push:
+    branches: [{{DEFAULT_BRANCH}}]
+  merge_group: {} # run as a merge-queue required check
+
+# Cancel superseded runs of the same ref (saves CI minutes).
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # validate — static structural-integrity gate (the required check).
+  #
+  # Runs the project's `ci.commands.validate` (default `make forge-validate-check`),
+  # which fails on: a broken prompt state machine (duplicate ids, a missing
+  # prompt file, an unknown/cyclic dependency, an invalid status, or a failing
+  # next_prompt.py), a dangling `@requirement`/`@rule` tag, a malformed
+  # Conventions Map, an invalid config, or stale derived docs.
+  # ---------------------------------------------------------------------------
+  validate:
+    name: Project integrity
+    runs-on: ubuntu-latest
+    env:
+      # Default: the Forge validate gate. Genesis fills ci.commands.validate;
+      # when it is empty, this default still runs the shipped Makefile target.
+      FORGE_VALIDATE_CMD: '{{CI_COMMANDS_VALIDATE}}'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so next_prompt.py and the changelog-based docs-freshness
+          # check resolve against the real commit log.
+          fetch-depth: 0
+
+      - name: Set up Python (validate runtime — no project stack needed)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      # {{TOOLCHAIN_SETUP_FOR_DOCS_HOOKS}}
+      # Only needed if forge.config.json declares stack `docsHooks` that run in
+      # --check mode (the validator's docs-freshness check invokes them).
+      # Otherwise omit.
+
+      - name: Validate the project's structural integrity
+        # Falls back to the shipped Forge target if the project left validate
+        # empty. Both invoke the same validator in --check mode.
+        run: |
+          if [ -n "${FORGE_VALIDATE_CMD}" ]; then
+            eval "${FORGE_VALIDATE_CMD}"
+          else
+            make forge-validate-check
+          fi

@@ -29,6 +29,11 @@ help: ## Show the available targets
 	@echo "  make forge-sync-docs-check   fail on any drift (CI docs-freshness gate)"
 	@echo "  make forge-docs-gen          core text artifacts only (no stack hooks)"
 	@echo ""
+	@echo "Project integrity gate:"
+	@echo "  make forge-validate          report the project's structural integrity"
+	@echo "  make forge-validate-check    fail if the project is not statically intact"
+	@echo "  make forge-validate-report   alias of forge-validate (human-readable, non-failing)"
+	@echo ""
 	@echo "Self-hosting (self-only — maintaining Forge itself):"
 	@echo "  make forge-selfcheck         constitution gate: selfcheck + docs-fresh (fails on drift)"
 	@echo "  make forge-selfcheck-report  human-readable selfcheck (non-failing)"
@@ -75,6 +80,19 @@ forge-sync-docs-check forge-sync-docs\:check: ## Fail on any drift (CI docs-fres
 .PHONY: forge-docs-gen
 forge-docs-gen: ## Core text artifacts only (skip stack hooks) — the "docs-gen" subset
 	@$(FORGE) sync-docs --core-only
+
+# --- project integrity gate (distributable) --------------------------------- #
+# Statically validate a Forge-BUILT project (state machine, tags, conventions,
+# config, docs freshness). DISTRIBUTABLE — shipped to adopters, unlike the
+# self-hosting targets below.
+
+.PHONY: forge-validate forge-validate-report
+forge-validate forge-validate-report: ## Report the project's structural integrity (human-readable)
+	@$(FORGE) validate
+
+.PHONY: forge-validate-check forge-validate\:check
+forge-validate-check forge-validate\:check: ## Fail if the project is not statically intact (CI integrity gate)
+	@$(FORGE) validate --check
 
 # --- self-hosting (self-only) ----------------------------------------------- #
 # These targets maintain FORGE ITSELF. They are part of Forge's self-development
