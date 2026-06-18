@@ -28,11 +28,28 @@ Usage
 import json
 import os
 import shutil
+import subprocess
 import sys
 from typing import Any, Dict, List, Optional
 
 from . import common
 from . import selfcheck
+
+# Self-only Make targets that must not survive into an adopter copy: they invoke
+# selfcheck.py / export.py, both excluded from the export, so they would be dead
+# targets for an adopter. The export strips both their help (`@echo`) lines and
+# their target definitions from the copied Makefile.
+SELF_ONLY_MAKE_TARGETS = (
+    "forge-selfcheck",
+    "forge-selfcheck-report",
+    "forge-export",
+)
+
+# Anchors a structural strip of the Makefile's self-hosting block. The help
+# block opens with this header echo; the target block opens with this section
+# marker and runs to end-of-file (it is the last section in the Makefile).
+SELF_ONLY_HELP_HEADER = "Self-hosting (self-only"
+SELF_ONLY_SECTION_MARKER = "# --- self-hosting (self-only)"
 
 EMPTY_STATE_SEED = (
     "{\n"
@@ -91,6 +108,105 @@ def _ensure_dir_with_gitkeep(path: str) -> None:
     open(os.path.join(path, ".gitkeep"), "w", encoding="utf-8").close()
 
 
+def _mentions_self_only_target(line: str) -> bool:
+    """True if a Makefile help/echo line refers to a self-only target."""
+    return any(target in line for target in SELF_ONLY_MAKE_TARGETS)
+
+
+def _strip_self_only_makefile_targets(dest_abs: str) -> bool:
+    """Remove the self-only targets (and their help lines) from DEST's Makefile.
+
+    The exported Makefile must not advertise or define ``forge-selfcheck``,
+    ``forge-selfcheck-report`` or ``forge-export`` — those call selfcheck.py /
+    export.py, which are excluded from the export, so they would be dead targets
+    for an adopter. Two structural regions are stripped:
+
+      1. The "Self-hosting (self-only …)" help block inside the ``help`` recipe:
+         the preceding blank ``@echo ""``, the header echo, and the per-target
+         ``@echo`` lines — but NOT the trailing blank ``@echo ""`` that separates
+         it from the "Colon-style aliases" note.
+      2. The ``# --- self-hosting (self-only) --- #`` section to end-of-file
+         (it is the last section in the Makefile), which holds the three target
+         definitions.
+
+    Returns True if a Makefile was found and rewritten.
+    """
+    makefile = os.path.join(dest_abs, "Makefile")
+    if not os.path.isfile(makefile):
+        return False
+    with open(makefile, encoding="utf-8") as fh:
+        lines = fh.readlines()
+
+    # 2) Drop the self-hosting target section (marker -> EOF).
+    cut = next(
+        (i for i, ln in enumerate(lines) if ln.startswith(SELF_ONLY_SECTION_MARKER)),
+        None,
+    )
+    if cut is not None:
+        # Also drop a trailing blank line that preceded the section, if any.
+        while cut > 0 and lines[cut - 1].strip() == "":
+            cut -= 1
+        lines = lines[:cut]
+
+    # 1) Drop the self-hosting help block: the header echo, every per-target
+    # echo, and the single blank `@echo ""` that immediately precedes the header.
+    out: List[str] = []
+    for ln in lines:
+        stripped = ln.strip()
+        if SELF_ONLY_HELP_HEADER in ln:
+            # Pop the blank `@echo ""` that opened this help block, if present.
+            if out and out[-1].strip() == '@echo ""':
+                out.pop()
+            continue
+        if stripped.startswith("@echo") and _mentions_self_only_target(ln):
+            continue
+        out.append(ln)
+
+    text = "".join(out).rstrip("\n") + "\n"
+    with open(makefile, "w", encoding="utf-8") as fh:
+        fh.write(text)
+    return True
+
+
+def _seed_fresh_derived_docs(dest_abs: str) -> bool:
+    """Make the export docs-fresh: regenerate baseline derived docs in DEST.
+
+    ``resetOnExport`` empties ``docs/generated/`` to a ``.gitkeep`` and reseeds
+    ``prompts/state.json``; on its own that leaves the export STALE, so a fresh
+    ``make forge-sync-docs-check`` would fail immediately. Running the
+    stack-neutral core generators here writes the baseline matrix/changelog/
+    STATUS for the empty-seed state, so the freshly-exported copy is internally
+    consistent (selfcheck-clean *and* docs-fresh) out of the box.
+
+    Git-independent: the changelog generator tolerates a non-repo directory
+    (``git log`` simply yields no commits), so no ``git init`` is required — a
+    fresh adopter copy need not be a repository yet. ``FORGE_ROOT`` points the
+    generators at DEST so they operate on the export, not on Forge's own tree.
+
+    Returns True if the generators ran successfully.
+    """
+    env = dict(os.environ)
+    env["FORGE_ROOT"] = dest_abs
+    env["PYTHONPATH"] = os.pathsep.join(
+        [os.path.join(dest_abs, "tools"), env.get("PYTHONPATH", "")]
+    ).rstrip(os.pathsep)
+    result = subprocess.run(
+        [sys.executable, "-m", "forge_tools.sync_docs"],
+        cwd=dest_abs,
+        env=env,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        encoding="utf-8",
+    )
+    if result.returncode != 0:
+        sys.stderr.write(
+            "[export] WARNING: could not seed fresh derived docs in DEST "
+            "(sync-docs exit {0}).\n{1}".format(result.returncode, result.stderr or "")
+        )
+        return False
+    return True
+
+
 def export(dest: str) -> int:
     manifest = _load_manifest()
     if not manifest:
@@ -142,6 +258,14 @@ def export(dest: str) -> int:
         gen_dst = os.path.join(dest_abs, "docs", "generated")
         _ensure_dir_with_gitkeep(gen_dst)
         reset_actions.append("docs/generated/ -> emptied (.gitkeep)")
+
+    # --- post-process the export so the adopter copy is consistent ---------- #
+    # Strip the self-only Make targets that would otherwise be dead in the copy,
+    if _strip_self_only_makefile_targets(dest_abs):
+        reset_actions.append("Makefile -> removed self-only targets")
+    # then seed fresh baseline derived docs so `forge-sync-docs-check` passes.
+    if _seed_fresh_derived_docs(dest_abs):
+        reset_actions.append("docs/generated/ + STATUS.md -> fresh baseline")
 
     # --- summary ------------------------------------------------------------ #
     sys.stdout.write("forge-export -> {0}\n".format(dest_abs))

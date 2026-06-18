@@ -11,20 +11,21 @@
 
 | Metric | Count |
 | ------ | ----- |
-| Total prompts | 1 |
-| Done | 1 |
+| Total prompts | 2 |
+| Done | 2 |
 | In progress | 0 |
 | Blocked | 0 |
 | Pending | 0 |
 
-**Overall progress:** 1/1 done (100%)
+**Overall progress:** 2/2 done (100%)
 
 **Next eligible:** DONE — every prompt is complete.
 
 ---
 
-## Phase S0 — Self-hosting infrastructure (1/1)
+## Phase S0 — Self-hosting infrastructure (2/2)
 
 | Status | ID | Title | Depends on | Refs | Commit |
 | ------ | -- | ----- | ---------- | ---- | ------ |
 | [v] | S0.1 | Make Forge self-hosting (self/ workspace, manifest + export, forge-selfcheck gate, /forge-contribute, framework CI) | — | vision, functional, decisions | — |
+| [v] | S0.2 | forge-export: adopter copy has no dead self-only targets and is docs-fresh | S0.1 | functional, decisions | `de25e72` |

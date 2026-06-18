@@ -1,7 +1,7 @@
 {
   "_comment": "Forge SELF-DEVELOPMENT prompt-suite state machine (Forge of Forge). This is NOT the adopter seed — it tracks Forge's own improvement roadmap and is excluded from the adopter export (see ../../forge.manifest.json -> selfOnly). next_prompt.py (copied beside it) selects the next eligible prompt by topological dependsOn order. New work items are recorded here by /forge-contribute. Schema reference: ../../prompts/state.schema.md.",
   "project": "Forge (self)",
-  "version": "1.0",
+  "version": "1.1",
   "updatedAt": "2026-06-18",
   "legend": {
     "status": ["pending", "in_progress", "blocked", "done"]
@@ -19,6 +19,17 @@
       "refs": ["vision", "functional", "decisions"],
       "file": "self/README.md",
       "commit": "",
+      "updatedAt": "2026-06-18"
+    },
+    {
+      "id": "S0.2",
+      "phase": "S0",
+      "title": "forge-export: adopter copy has no dead self-only targets and is docs-fresh",
+      "status": "done",
+      "dependsOn": ["S0.1"],
+      "refs": ["functional", "decisions"],
+      "file": "tools/forge_tools/export.py",
+      "commit": "de25e72",
       "updatedAt": "2026-06-18"
     }
   ]

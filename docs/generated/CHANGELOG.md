@@ -21,6 +21,10 @@ Generated from **Conventional Commits**. Versions are marked by SemVer tags (`v*
 - **forge-engine:** prompt-suite engine + state machine + DoD
 - **forge-requirements:** scalable requirement templates + ID taxonomy
 
+#### Fixes
+
+- **forge-export:** adopter copy has no dead targets and is docs-fresh
+
 #### Tests
 
 - **forge:** end-to-end self-test + final integration fixes
