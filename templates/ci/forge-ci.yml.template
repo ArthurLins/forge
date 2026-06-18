@@ -32,6 +32,7 @@ on:
     tags: ['v*'] # SemVer release tags (optional)
   pull_request:
     branches: [{{DEFAULT_BRANCH}}]
+  merge_group: {} # run as a merge-queue required check (see the teams guide)
 
 # Cancel superseded runs of the same ref (saves CI minutes).
 concurrency:
@@ -50,6 +51,9 @@ jobs:
   # template ships alongside this file as `commitlint.config.template.*`.
   # Replace {{COMMIT_LINT_COMMAND}} with the project's checker invocation
   # (it must read the PR's commit range — see {{COMMIT_RANGE_FROM/TO}}).
+  # Only runs on pull_request: in the merge queue (merge_group) commit messages
+  # were already validated on the PR, and the quality / docs / validate jobs are
+  # what must re-run against the merged result.
   # ---------------------------------------------------------------------------
   commits:
     name: Conventional Commits

@@ -13,7 +13,9 @@ the self-only / distributable boundary.
 Checks
 ------
   seed-purity         (hard) root prompts/state.json has empty phases & prompts;
-                             docs/requirements/ contains only .gitkeep.
+                             docs/requirements/ contains only .gitkeep; the
+                             prompts/claims/ shard dir holds only .gitkeep (no
+                             leaked claim from Forge's own working state).
   registration-parity (hard) every DISTRIBUTABLE skill/command appears in BOTH
                              the AGENTS.md catalog table and the skills catalog.
   domain-residue      (hard) no business-domain / medical / PedPlus tokens in
@@ -43,6 +45,7 @@ from . import common
 
 MANIFEST_REL = "forge.manifest.json"
 STATE_REL = "prompts/state.json"
+CLAIMS_DIR = "prompts/claims"
 REQUIREMENTS_DIR = "docs/requirements"
 AGENTS_REL = "AGENTS.md"
 SKILLS_CATALOG_REL = "docs/guides/skills-catalog.md"
@@ -249,6 +252,18 @@ def check_seed_purity() -> CheckResult:
             res.fail(
                 "{0}/ must contain only .gitkeep (found: {1})".format(
                     REQUIREMENTS_DIR, ", ".join(unexpected)
+                )
+            )
+    # prompts/claims/ must contain only .gitkeep — a claim file in the shipped
+    # seed is a leaked in-progress marker from Forge's own working state.
+    claims_dir = common.repo_path(CLAIMS_DIR)
+    if os.path.isdir(claims_dir):
+        entries = sorted(os.listdir(claims_dir))
+        leaked = [e for e in entries if e != ".gitkeep"]
+        if leaked:
+            res.fail(
+                "{0}/ must contain only .gitkeep (leaked claim(s): {1})".format(
+                    CLAIMS_DIR, ", ".join(leaked)
                 )
             )
     return res

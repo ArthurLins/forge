@@ -73,6 +73,7 @@ that fits the task:
 | [`docs/guides/contributing-agents.md`](docs/guides/contributing-agents.md) | The full contribution loop + the Definition of Done. |
 | [`docs/guides/project-map.md`](docs/guides/project-map.md)    | Where everything lives (source of truth → prompts → code → derived artifacts). |
 | [`docs/guides/skills-catalog.md`](docs/guides/skills-catalog.md) | The skills/commands catalog + the "unstructured request" rule. |
+| [`docs/guides/teams.md`](docs/guides/teams.md)                | Multi-contributor model: merge queue + required checks, sharded claims, union-merge for derived docs, and the validate gate. |
 | [`examples/golden-example/`](examples/golden-example/)        | The end-to-end loop on a generic feature (mental template). |
 
 ## The CI gate

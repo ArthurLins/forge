@@ -16,6 +16,7 @@
   "resetOnExport": {
     "_comment": "After copying the distributable files into a fresh export, `forge-export` re-blanks these so the adopter starts from clean seeds (never inheriting Forge's own working state).",
     "prompts/state.json": "empty seed (no phases / no prompts) — the shipped seed already in the repo root",
+    "prompts/claims/": "contains only .gitkeep (parallel-execution claim files are working state; never inherit Forge's own in-flight claims)",
     "docs/requirements/": "contains only .gitkeep (the adopter writes their own source of truth via /forge-init)",
     "docs/generated/": "regenerated or emptied (derived artifacts are rebuilt by the adopter's own tooling)"
   }

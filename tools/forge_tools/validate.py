@@ -19,6 +19,10 @@ Checks
                                   exists; every `dependsOn` id exists; the
                                   dependency graph has no cycles; statuses are
                                   valid; `prompts/next_prompt.py` runs cleanly.
+  claims-integrity         (hard) only if prompts/claims/ exists: each claim file
+                                  references a declared prompt and does NOT claim
+                                  a `done` prompt (a stale/leaked claim → fail); a
+                                  very old claim → WARNING. Skipped if no dir.
   requirement-tag-integrity (hard) every `@requirement`/`@rule` id referenced in
                                   source is DECLARED in docs/requirements/. A
                                   dangling tag fails; a declared requirement with
@@ -40,6 +44,7 @@ Warnings never fail the build. ``--check`` returns non-zero only on a hard
 failure.
 """
 
+import datetime
 import json
 import os
 import re
@@ -55,10 +60,16 @@ from .traceability import scan as scan_tags
 STATE_REL = "prompts/state.json"
 NEXT_PROMPT_REL = "prompts/next_prompt.py"
 PROMPTS_DIR = "prompts"
+CLAIMS_DIR = "prompts/claims"
 CONFIG_REL = "forge.config.json"
 CONVENTIONS_REL = "docs/requirements/conventions.md"
 
 VALID_STATUSES = {"pending", "in_progress", "blocked", "done"}
+
+# A claim older than this is flagged (WARNING, never a hard fail): a long-lived
+# claim usually means a worker crashed or forgot to release it. Tune to taste —
+# the value is advisory, not a gate.
+STALE_CLAIM_AGE_DAYS = 7
 
 # Top-level keys a Forge stack profile is expected to carry (the placeholder
 # ships all of them; genesis fills their values). Documentation-hint keys
@@ -260,6 +271,116 @@ def _find_cycle(edges: Dict[str, List[str]]) -> Optional[List[str]]:
     return None
 
 
+def check_claims_integrity() -> CheckResult:
+    """Validate the sharded prompt claims (parallel-execution safety).
+
+    A claim is `prompts/claims/<promptId>.json` written by the orchestrator while
+    a prompt is in flight, so a second worker won't grab the same prompt. This
+    check keeps claims honest:
+
+      - the claims dir is OPTIONAL — skip cleanly if it is absent;
+      - each claim must reference a prompt that EXISTS in state.json (a dangling
+        claim → hard fail);
+      - a claim must NOT reference a `done` prompt (a stale/leaked claim that
+        would never be released → hard fail);
+      - a malformed claim file (bad JSON / mismatched id) → hard fail;
+      - a very old claim → WARNING (likely a crashed/forgotten worker).
+    """
+    res = CheckResult("claims-integrity")
+    claims_dir = common.repo_path(CLAIMS_DIR)
+    if not os.path.isdir(claims_dir):
+        res.skip("no {0}/ (claims are optional)".format(CLAIMS_DIR))
+        return res
+
+    files = sorted(
+        f
+        for f in os.listdir(claims_dir)
+        if f.endswith(".json") and f != ".gitkeep"
+    )
+    if not files:
+        # Dir present but empty (only .gitkeep) — nothing claimed, nothing wrong.
+        return res
+
+    state, err = _load_state()
+    if err:
+        res.fail(err)
+        return res
+    prompts: List[Dict[str, Any]] = (state or {}).get("prompts") or []
+    id_to_status: Dict[str, Optional[str]] = {
+        str(p.get("id")): p.get("status") for p in prompts if p.get("id") is not None
+    }
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    for fname in files:
+        claim_id = fname[: -len(".json")]
+        path = os.path.join(claims_dir, fname)
+        try:
+            with open(path, encoding="utf-8") as fh:
+                claim = json.load(fh)
+        except (json.JSONDecodeError, OSError) as exc:
+            res.fail("claim {0} is not readable JSON: {1}".format(fname, exc))
+            continue
+
+        # The in-file promptId, when present, must match the file name.
+        declared = str(claim.get("promptId")) if isinstance(claim, dict) else None
+        if declared and declared != claim_id:
+            res.fail(
+                "claim {0} declares promptId {1!r} — it must match the file "
+                "name".format(fname, declared)
+            )
+
+        # The claimed prompt must exist in the state machine.
+        if claim_id not in id_to_status:
+            res.fail(
+                "claim {0} references an unknown prompt id — remove the stale "
+                "claim or fix it".format(fname)
+            )
+            continue
+
+        # A claim on a `done` prompt is a leak: it would never be released and
+        # would silently hide the prompt from selection.
+        if id_to_status[claim_id] == "done":
+            res.fail(
+                "claim {0} references a `done` prompt — a stale/leaked claim; "
+                "remove prompts/claims/{0}".format(fname)
+            )
+            continue
+
+        # An old claim is suspicious (crashed/forgotten worker) but not fatal.
+        claimed_at = (claim.get("claimedAt") or "").strip() if isinstance(claim, dict) else ""
+        age = _claim_age_days(claimed_at, now)
+        if age is not None and age > STALE_CLAIM_AGE_DAYS:
+            res.warn(
+                "claim {0} is {1} day(s) old (claimedAt {2}) — verify the worker "
+                "is still active or release it".format(fname, age, claimed_at)
+            )
+    return res
+
+
+def _claim_age_days(claimed_at: str, now: datetime.datetime) -> Optional[int]:
+    """Age of a claim in whole days, or None if `claimedAt` is unparseable.
+
+    Accepts an ISO-8601 timestamp (with or without a trailing ``Z``) or a bare
+    ``YYYY-MM-DD`` date. A missing/garbled value is simply not aged (returns
+    None) — the claim is still validated for existence and `done`-status.
+    """
+    if not claimed_at:
+        return None
+    text = claimed_at.replace("Z", "+00:00")
+    parsed: Optional[datetime.datetime] = None
+    try:
+        parsed = datetime.datetime.fromisoformat(text)
+    except ValueError:
+        try:
+            parsed = datetime.datetime.strptime(claimed_at[:10], "%Y-%m-%d")
+        except ValueError:
+            return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=datetime.timezone.utc)
+    delta = now - parsed
+    return max(delta.days, 0)
+
+
 def check_requirement_tag_integrity() -> CheckResult:
     res = CheckResult("requirement-tag-integrity")
     config = common.load_config()
@@ -415,6 +536,7 @@ def check_docs_freshness() -> CheckResult:
 def run_all() -> List[CheckResult]:
     return [
         check_state_integrity(),
+        check_claims_integrity(),
         check_requirement_tag_integrity(),
         check_conventions_integrity(),
         check_config_integrity(),

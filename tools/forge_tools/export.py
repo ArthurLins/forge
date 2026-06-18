@@ -259,6 +259,12 @@ def export(dest: str) -> int:
         _ensure_dir_with_gitkeep(gen_dst)
         reset_actions.append("docs/generated/ -> emptied (.gitkeep)")
 
+    # prompts/claims/ -> only .gitkeep (never ship Forge's own in-flight claims)
+    if "prompts/claims/" in reset or "prompts/claims" in reset:
+        claims_dst = os.path.join(dest_abs, "prompts", "claims")
+        _ensure_dir_with_gitkeep(claims_dst)
+        reset_actions.append("prompts/claims/ -> only .gitkeep")
+
     # --- post-process the export so the adopter copy is consistent ---------- #
     # Strip the self-only Make targets that would otherwise be dead in the copy,
     if _strip_self_only_makefile_targets(dest_abs):

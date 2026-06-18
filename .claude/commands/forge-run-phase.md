@@ -34,7 +34,14 @@ prompt.
       - `BLOCKED\t<ids>` → report the blocked prompts and **stop**.
       - `<ID>\t<file>`: if `<ID>` does **not** belong to the target phase, the
         phase is finished → go to step 3.
-   b. **Delegate to an ISOLATED subagent** (the `Task` tool, a general-purpose
+   b. **Claim it (parallel-execution safety).** Before delegating, write a claim
+      file so a second contributor running the suite in parallel will not pick the
+      same prompt: `prompts/claims/<ID>.json` =
+      `{ "promptId": "<ID>", "owner": "<you/agent>", "claimedAt": "<ISO-8601 now>" }`.
+      `prompts/next_prompt.py` skips any claimed prompt, so the other worker
+      selects the next free one (or reports `BLOCKED`/`DONE`).
+
+   c. **Delegate to an ISOLATED subagent** (the `Task` tool, a general-purpose
       agent) with this self-contained instruction:
 
       > You are an agent (Claude, Opus 4.8) in a Forge-built repository, with a
@@ -61,7 +68,10 @@ prompt.
       > `prompts/.logs/<ID>.note.md`, commit the partial progress, and report.
       > Return a summary of at most 8 lines: what you did, the key files, the
       > final status, and any blockers.
-   c. When the subagent returns, **verify** with `python3
+   d. When the subagent returns, **release the claim and verify**: if `<ID>` was
+      marked `done`, **delete `prompts/claims/<ID>.json`**; if it did **not**
+      complete, **leave the claim** (and the `.logs/<ID>.note.md` note) so a
+      parallel worker keeps skipping it. Then run `python3
       prompts/next_prompt.py`:
       - If the **same `<ID>`** returns (it did not complete) → **stop** and show
         the reason from `prompts/.logs/<ID>.note.md`. Do **not** retry
@@ -81,5 +91,11 @@ prompt.
 - **Stack-neutral:** every gate/test/command comes from `forge.config.json →
   ci.commands` and `criticalPaths.paths`, and the source of truth is
   `docs/requirements/`. No tool name is hardcoded here.
+- **Claims convention (parallel-execution safety):** one claim file per in-flight
+  prompt (`prompts/claims/<ID>.json`), written **before** delegating and removed
+  **after** the prompt is `done`; on failure the claim stays put alongside the
+  `.logs/<ID>.note.md` note. Each prompt gets its own file, so claims never
+  conflict with each other or with `state.json`. `forge-validate` checks claims
+  integrity. See [`docs/guides/teams.md`](../../docs/guides/teams.md).
 - Work only on the target phase's prompts; never remove `docs/requirements/` or
   `prompts/`.

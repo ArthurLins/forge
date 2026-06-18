@@ -82,6 +82,18 @@ truth.
 ## CI
 
 Forge's own CI — [`.github/workflows/forge-selfcheck.yml`](.github/workflows/forge-selfcheck.yml)
-— runs `make forge-selfcheck` on pull requests and pushes to `main`. (This is
-distinct from the adopter CI **template** in `templates/ci/`, which an adopter
-project installs for *its* build.)
+— runs `make forge-selfcheck` on pull requests, pushes to `main`, **and in the
+merge queue** (`merge_group`). (This is distinct from the adopter CI **template**
+in `templates/ci/`, which an adopter project installs for *its* build.)
+
+## Multiple contributors
+
+When several people (or agents) work the suite in parallel, the conflict surfaces
+— a shared `prompts/state.json`, the regenerated derived docs, and two workers
+grabbing the same prompt — and Forge's four mitigations (merge queue + required
+checks, **sharded claims** in `prompts/claims/`, **union-merge** for derived docs
+via `.gitattributes`, and the `forge-validate` integrity gate) are documented with
+exact steps in [`docs/guides/teams.md`](docs/guides/teams.md). Enable the GitHub
+**merge queue** and mark the selfcheck check **required** so PRs are tested against
+the merged result; on any derived-doc conflict, run `make forge-sync-docs` to get
+the canonical regenerated form.

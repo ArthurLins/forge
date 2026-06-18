@@ -16,6 +16,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Run in the merge queue so the constitution gate is tested against the
+  # actually-merged result, not each PR in isolation (mark this check REQUIRED in
+  # branch protection to enable the queue). See CONTRIBUTING.md + docs/guides/teams.md.
+  merge_group: {}
 
 concurrency:
   group: forge-selfcheck-${{ github.ref }}

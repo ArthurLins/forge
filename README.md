@@ -72,6 +72,7 @@ Once you have run genesis, these stack-neutral guides orient you and your agents
 | [`docs/guides/contributing-agents.md`](docs/guides/contributing-agents.md) | follow the contribution loop + the Definition of Done. |
 | [`docs/guides/project-map.md`](docs/guides/project-map.md)           | find where everything lives.                              |
 | [`docs/guides/skills-catalog.md`](docs/guides/skills-catalog.md)     | learn each skill/command and when to use it.              |
+| [`docs/guides/teams.md`](docs/guides/teams.md)                       | work the suite with multiple contributors (merge queue, claims, union-merge, validate gate). |
 | [`examples/golden-example/`](examples/golden-example/)               | see the whole loop on a generic feature (mental template). |
 
 The **CI gate** Forge installs lives in

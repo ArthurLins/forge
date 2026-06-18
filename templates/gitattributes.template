@@ -1,0 +1,23 @@
+# =============================================================================
+# Forge — git attributes (adopter template).
+#
+# GENERATED-FROM-TEMPLATE. `/forge-init` installs this as the project's
+# `.gitattributes` (or merges these lines into an existing one) and replaces
+# {{DOCS_GENERATED_DIR}} with `forge.config.json → docs.generatedDir`
+# (default `docs/generated`).
+#
+# Union-merge for regenerated, line-oriented derived docs (multi-contributor
+# safety). These files are GENERATED, never hand-edited (FORGE.md, Principle 6),
+# and they are append-/line-oriented, so when two branches each add lines git's
+# default merge produces a spurious conflict on every overlap. `merge=union`
+# tells git to keep BOTH sides' lines instead of conflicting — eliminating the
+# single most common merge conflict for parallel contributors.
+#
+# Union-merge can leave the lines slightly out of canonical order or duplicated.
+# That is fine and self-healing: on ANY conflict (or after any merge) just
+# regenerate the canonical form with `make forge-sync-docs` and commit — the
+# generators are the only real writers of these files. See docs/guides/teams.md.
+# =============================================================================
+{{DOCS_GENERATED_DIR}}/CHANGELOG.md   merge=union
+{{DOCS_GENERATED_DIR}}/traceability.md merge=union
+prompts/STATUS.md                     merge=union

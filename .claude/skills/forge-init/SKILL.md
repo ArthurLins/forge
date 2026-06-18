@@ -189,9 +189,12 @@ This is Principle 2, and it must happen **before** Step 5.
      copying `templates/ci/forge-validate.yml.template` into
      `.github/workflows/` (filling `{{DEFAULT_BRANCH}}` and
      `{{CI_COMMANDS_VALIDATE}}`), and **tell the developer to mark the "Project
-     integrity" check required** in branch protection. **If they said no
-     (default):** leave `ci.strictValidation: false` and do not install the
-     workflow (the combined `forge-ci.yml`'s `validate` job stays gated off).
+     integrity" check required** in branch protection (and, for multi-contributor
+     repos, **enable the GitHub merge queue** so the check runs against the
+     merged result — see [`docs/guides/teams.md`](../../docs/guides/teams.md)).
+     **If they said no (default):** leave `ci.strictValidation: false` and do not
+     install the workflow (the combined `forge-ci.yml`'s `validate` job stays
+     gated off).
    - `traceability.globs` — adjust to where **this** project's source will live
      (e.g. the chosen repo layout); keep the neutral defaults if unsure.
    - `docsHooks` — add a hook **only** if the project already has a
@@ -199,7 +202,17 @@ This is Principle 2, and it must happen **before** Step 5.
      client); otherwise leave `[]`. Use `_docsHooksExample` in the config as the
      shape. Do **not** invent a hook the project did not ask for.
    - Remove the `_comment` / `_docsHooksExample` documentation keys once filled.
-3. **Verify the two agree** — the ADR-001 table and `forge.config.json` must not
+3. **Install `.gitattributes` (union-merge for derived docs — always).** Copy
+   `templates/gitattributes.template` to the project's `.gitattributes`,
+   replacing `{{DOCS_GENERATED_DIR}}` with `docs.generatedDir` (default
+   `docs/generated`). If the project already has a `.gitattributes`, **merge**
+   these `merge=union` lines into it rather than overwriting. This marks the
+   regenerated, line-oriented derived docs (changelog, traceability matrix,
+   `prompts/STATUS.md`) so parallel branches auto-resolve instead of conflicting;
+   on any residual conflict the canonical form comes from `make forge-sync-docs`.
+   For multi-contributor repos also enable the merge queue + required checks (see
+   [`docs/guides/teams.md`](../../docs/guides/teams.md)).
+4. **Verify the two agree** — the ADR-001 table and `forge.config.json` must not
    diverge; the config is the operational source.
 
 > ADR-001 and the config are written **here, before** the functional templates,
