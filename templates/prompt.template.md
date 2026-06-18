@@ -1,0 +1,73 @@
+# [P<phase>.<seq>] — <Prompt title>
+
+> Standard template for a Forge prompt. Copy and fill it in. Every prompt is
+> **self-contained** and **independent of conversation context** — an agent must
+> be able to execute it cold, from the file and the referenced docs alone.
+
+---
+
+## Metadata
+
+- **ID:** P<phase>.<seq>
+- **Phase:** <phase number and name>
+- **Depends on:** <prompt ids or "none">
+- **Reference docs (read before starting):**
+  - `docs/requirements/index.md`
+  - `docs/requirements/<specific docs for this prompt>`
+- **Requirements covered:** <requirement ids, e.g. R-xx / NFR-xx / BR-xx / C-xx>
+- **Expected outputs / artifacts:** <folders / files / resources this prompt produces>
+
+---
+
+## Agent role
+
+You are an autonomous build agent working on this repository. **Read the
+reference docs above before any action.** The source of truth for requirements
+is `docs/requirements/`. Do **not** invent requirements; if something is
+ambiguous, record the open question and follow the decision most aligned with
+the docs and the recorded architecture decisions (ADRs, see
+`docs/requirements/decisions.md`). Honor the project's stack and conventions as
+declared in `forge.config.json` — do not hardcode tools the project did not
+choose.
+
+## Context (self-sufficient)
+
+<A summary of everything that matters for this prompt, with no reliance on prior
+conversation. Always point to the docs that back each claim.>
+
+## Objective
+
+<The expected result, in 1–3 sentences.>
+
+## Preconditions
+
+- <state of the repository / prompts already done / services available>
+
+## Tasks
+
+1. <step>
+2. <step>
+3. <…>
+
+## Acceptance criteria
+
+- [ ] <verifiable condition>
+- [ ] <…>
+
+## State & docs update (required)
+
+1. Add `@requirement <id>` tags in the relevant code **and tests** (traceability).
+2. Run the docs-sync command (`/forge-sync-docs`) to regenerate derived
+   artifacts (e.g. API spec, ERD/data dictionary, traceability matrix,
+   changelog, `STATUS.md`) — only those the project actually has.
+3. Update `prompts/state.json` (`status` → `done`, plus `commit` and
+   `updatedAt`) and regenerate `prompts/STATUS.md`.
+4. Create a **Conventional Commit** (e.g. `feat(<scope>): …`).
+
+## Verification
+
+- <how to validate: the quality gates from `forge.config.json`
+  (`ci.commands.lint` / `typecheck` / `test` / `build` / `docsCheck`), plus any
+  prompt-specific checks — screenshots, sample runs, etc.>
+- Confirm **CI is green** and the **Definition of Done** is met
+  (see `prompts/README.md`, §5).

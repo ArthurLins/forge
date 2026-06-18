@@ -1,0 +1,11 @@
+{
+  "_comment": "Forge prompt-suite state machine. Empty seed — genesis (/forge-init) and phase planning (/forge-plan-phase) populate phases[] and prompts[]. next_prompt.py reads this file to select the next eligible prompt by topological dependsOn order. Field-by-field documentation: state.schema.md. The leading underscore key is a documentation hint and may be removed once filled.",
+  "project": "",
+  "version": "0",
+  "updatedAt": "",
+  "legend": {
+    "status": ["pending", "in_progress", "blocked", "done"]
+  },
+  "phases": [],
+  "prompts": []
+}
