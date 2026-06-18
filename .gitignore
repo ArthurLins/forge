@@ -1,0 +1,41 @@
+# --- Forge .gitignore (stack-neutral) ---
+# Forge does not assume a stack. This file ignores only generic noise.
+# When /forge-init records your stack profile, extend this file with the
+# ignores your toolchain needs (e.g. compiled output, vendor dirs).
+
+# Dependencies / package caches (any ecosystem)
+node_modules/
+vendor/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Build / distribution output
+dist/
+build/
+out/
+target/
+*.log
+
+# Caches
+.cache/
+.tmp/
+tmp/
+*.tsbuildinfo
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+*.swo
+
+# Forge-specific (kept tracked, listed here for reference — do not ignore):
+# docs/generated/  → derived artifacts; they are committed and CI-checked.

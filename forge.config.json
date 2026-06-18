@@ -1,0 +1,52 @@
+{
+  "_comment": "Forge stack profile. PLACEHOLDER — neutral defaults, no stack assumed. The genesis interview (/forge-init) fills these fields and records a Stack ADR. Every skill and tool reads this file instead of hardcoding a stack. Field-by-field documentation: forge.config.schema.md. The leading underscore keys are documentation hints and may be removed once filled.",
+  "forgeVersion": "0",
+  "project": {
+    "name": "",
+    "purpose": "",
+    "_comment": "Human-readable project name and one-line purpose. Filled by genesis."
+  },
+  "stack": {
+    "_comment": "All fields optional/nullable — a project may use none, some, or all.",
+    "language": null,
+    "runtime": null,
+    "frameworks": [],
+    "datastore": null,
+    "packageManager": null,
+    "monorepoTool": null
+  },
+  "conventions": {
+    "_comment": "Casing and process conventions. Defaults below are Forge's own; a project may override.",
+    "fileCasing": "kebab-case",
+    "typeCasing": "PascalCase",
+    "identifierCasing": "camelCase",
+    "constantCasing": "UPPER_SNAKE_CASE",
+    "commitStyle": "conventional",
+    "docsLanguage": "en",
+    "codeLanguage": "en"
+  },
+  "requirementTiers": {
+    "_comment": "Which spec weight genesis used. One of: lean | standard | full. Empty until chosen.",
+    "selected": "",
+    "available": ["lean", "standard", "full"]
+  },
+  "compliance": {
+    "_comment": "Compliance regimes this project must honor (e.g. a privacy or certification standard). Empty by default — no compliance assumed.",
+    "regimes": []
+  },
+  "criticalPaths": {
+    "_comment": "Named flows that MUST be covered by tests (the Definition of Done gates these). Empty by default.",
+    "paths": []
+  },
+  "ci": {
+    "_comment": "Continuous-integration profile. provider and commands filled by genesis/F8.",
+    "provider": "",
+    "commands": {
+      "lint": "",
+      "typecheck": "",
+      "test": "",
+      "build": "",
+      "docsCheck": ""
+    }
+  }
+}
