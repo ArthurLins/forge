@@ -6,7 +6,7 @@ and then any **stack hooks** the project declares in ``forge.config.json`` under
 ``docsHooks``. A hook is just a shell command the project supplies (e.g. build
 an OpenAPI contract, regenerate an API client); if none are declared, the hook
 phase is skipped and sync-docs still succeeds. This is how Forge keeps the
-PedPlus split — text artifacts here, stack-specific steps as optional plugins —
+split — text artifacts here, stack-specific steps as optional plugins —
 without hardcoding any stack (Forge Principle 6).
 
 A ``--check`` mode runs every generator in check mode and fails on ANY drift in

@@ -29,6 +29,11 @@ help: ## Show the available targets
 	@echo "  make forge-sync-docs-check   fail on any drift (CI docs-freshness gate)"
 	@echo "  make forge-docs-gen          core text artifacts only (no stack hooks)"
 	@echo ""
+	@echo "Self-hosting (self-only — maintaining Forge itself):"
+	@echo "  make forge-selfcheck         constitution gate: selfcheck + docs-fresh (fails on drift)"
+	@echo "  make forge-selfcheck-report  human-readable selfcheck (non-failing)"
+	@echo "  make forge-export DEST=<dir> produce a clean adopter copy of Forge"
+	@echo ""
 	@echo "Colon-style aliases also work: 'make forge-status:check', etc."
 
 # --- core generators -------------------------------------------------------- #
@@ -68,5 +73,25 @@ forge-sync-docs-check forge-sync-docs\:check: ## Fail on any drift (CI docs-fres
 	@$(FORGE) sync-docs --check
 
 .PHONY: forge-docs-gen
-forge-docs-gen: ## Core text artifacts only (skip stack hooks) — mirrors PedPlus docs:gen
+forge-docs-gen: ## Core text artifacts only (skip stack hooks) — the "docs-gen" subset
 	@$(FORGE) sync-docs --core-only
+
+# --- self-hosting (self-only) ----------------------------------------------- #
+# These targets maintain FORGE ITSELF. They are part of Forge's self-development
+# tooling (forge.manifest.json -> selfOnly) and are NOT shipped to adopters.
+
+.PHONY: forge-selfcheck
+forge-selfcheck: ## Constitution gate — run selfcheck AND the docs-freshness check (fails on drift)
+	@$(FORGE) selfcheck --check
+	@$(FORGE) sync-docs --check
+
+.PHONY: forge-selfcheck-report
+forge-selfcheck-report: ## Human-readable selfcheck report (never fails — for inspection)
+	@$(FORGE) selfcheck
+
+.PHONY: forge-export
+forge-export: ## Produce a clean adopter copy of Forge: make forge-export DEST=<dir>
+	@if [ -z "$(DEST)" ]; then \
+		echo "usage: make forge-export DEST=<path>"; exit 2; \
+	fi
+	@$(FORGE) export --dest "$(DEST)"

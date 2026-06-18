@@ -1,0 +1,22 @@
+{
+  "_comment": "Distribution manifest — separates Forge's DISTRIBUTABLE framework (what adopters copy) from its SELF-DEVELOPMENT workspace (used to maintain Forge itself, never shipped). `selfOnly` lists the paths excluded from the adopter export (`make forge-export`); everything else in the repository is distributable. `resetOnExport` documents the root seeds that `forge-export` re-blanks so an adopter starts clean. The `forge-selfcheck` gate and the `/forge-contribute` skill read this file to know which paths are self-only (e.g. so registration-parity exempts self-only commands). See CONTRIBUTING.md and self/README.md for the self-hosting model.",
+  "manifestVersion": "1",
+  "selfOnly": [
+    "self/",
+    "CONTRIBUTING.md",
+    "forge.manifest.json",
+    ".github/",
+    "tools/forge_tools/selfcheck.py",
+    "tools/forge_tools/export.py",
+    ".claude/commands/forge-contribute.md"
+  ],
+  "distributable": {
+    "_comment": "Everything tracked by git that is NOT matched by a `selfOnly` prefix is distributable: the manifesto (FORGE.md), the root agent guide (AGENTS.md), README, forge.config.json + schema, the adopter skills/commands/agents under .claude/ (excluding the self-only ones above), the requirement & prompt & ADR & agent-guide & CI templates, the prompt-suite engine under prompts/, the derived-docs generators under tools/forge_tools/ (excluding selfcheck.py/export.py), the process guides under docs/guides/, the single golden example, and the Makefile."
+  },
+  "resetOnExport": {
+    "_comment": "After copying the distributable files into a fresh export, `forge-export` re-blanks these so the adopter starts from clean seeds (never inheriting Forge's own working state).",
+    "prompts/state.json": "empty seed (no phases / no prompts) — the shipped seed already in the repo root",
+    "docs/requirements/": "contains only .gitkeep (the adopter writes their own source of truth via /forge-init)",
+    "docs/generated/": "regenerated or emptied (derived artifacts are rebuilt by the adopter's own tooling)"
+  }
+}

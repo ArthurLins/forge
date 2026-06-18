@@ -94,8 +94,9 @@ Knobs for the traceability generator (`tools/forge_tools/traceability.py`).
 | `globs`      | string[] | `["apps/**/*","libs/**/*","src/**/*","packages/**/*","modules/**/*","examples/**/*"]` | Repo-relative source patterns scanned for tags. `**` is recursive; `*` does not cross `/`. The defaults are the conventional locations a project's **own** source lives; Forge's framework folders (`templates/`, `tools/`, `docs/`) are excluded so tag *examples* in Forge's prose are not picked up. |
 | `tagAliases` | object   | `{"requirement":["requirement","req"],"rule":["rule","businessRule"],"convention":["convention","conv"]}`  | Maps a **link kind** to the tag keywords that record it. `requirement` links a requirement id (`FR`/`NFR`/`CR`/`UC`/`EN`); `rule` links a business rule (`BR`); `convention` links an engineering convention (`EC`) from the [Conventions Map](#the-conventions-map-ec-tag). Project-declared aliases are **merged on top of** the defaults, so adding an alias never drops the built-in ones. |
 
-> Generalized from PedPlus's hardcoded `@requirement RFxx` / `@businessRule
-> RNxx`. In Forge the tag keywords and the scanned globs are config, not code.
+> A generalization of stack-specific, hardcoded tag conventions (such as
+> `@requirement RFxx` / `@businessRule RNxx`). In Forge the tag keywords and the
+> scanned globs are config, not code.
 
 #### The Conventions Map (`EC`) tag
 
@@ -131,9 +132,9 @@ Each entry:
 
 > `_docsHooksExample` in the shipped config is an inert documentation block
 > (note the leading underscore): copy an entry from it into `docsHooks[]` and
-> fill in your stack's commands. PedPlus's OpenAPI build and Hey-API client
-> generation are exactly the kind of step that becomes a hook here instead of
-> being hardcoded.
+> fill in your stack's commands. An API-contract build and a generated typed API
+> client are exactly the kind of step that becomes a hook here instead of being
+> hardcoded.
 
 ### `ci` (object)
 

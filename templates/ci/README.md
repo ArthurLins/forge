@@ -65,6 +65,6 @@ The CI step of `/forge-init` (or a later setup) instantiates the template:
 - The **commits** gate calls the project's chosen checker; the message grammar
   it must enforce is specified in `commitlint.config.template.md`.
 
-> Generalized from a PedPlus-style CI (Conventional Commits + `nx affected`
-> quality + a docs-freshness gate). In Forge, the provider and every command are
-> configuration, not code.
+> A generalization of a typical CI shape (Conventional Commits + a quality gate +
+> a docs-freshness gate); illustrative stack tooling such as `nx affected` is only
+> an example. In Forge, the provider and every command are configuration, not code.

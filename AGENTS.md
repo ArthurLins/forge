@@ -44,10 +44,14 @@ during genesis, and from then on every skill and tool reads it.
 ## Source of truth
 
 For a real project, the only source of truth is `docs/requirements/`, seeded by
-genesis. **Never invent requirements.** For **Forge's own** design, the source
-of truth is [`FORGE.md`](FORGE.md) (the eight principles) plus this guide; the
-build is driven by an external harness of build prompts (it lives outside this
-repo, in the orchestrator's workspace).
+genesis. **Never invent requirements.** For **Forge's own** design, the
+constitution is [`FORGE.md`](FORGE.md) (the eight principles); its **ongoing
+evolution** is self-hosted in [`self/`](self/README.md) — Forge's own
+requirements (`FR-S*`) and improvement roadmap, maintained **with Forge itself**
+via [`/forge-contribute`](.claude/commands/forge-contribute.md) and gated by
+`forge-selfcheck` + the framework CI. The external harness only **bootstrapped**
+Forge; it no longer drives the build. (See "Maintaining Forge" below and
+[`CONTRIBUTING.md`](CONTRIBUTING.md).)
 
 | Where                   | What it holds                                              |
 | ----------------------- | ---------------------------------------------------------- |
@@ -103,8 +107,29 @@ For a **project built with Forge**:
 - Next eligible prompt: the next/run skill, or the prompt selector
 - The Definition of Done lives with the prompt engine.
 
-For **building Forge itself**, the build prompts are run from the external
-harness in dependency order; each is autonomous.
+For **maintaining Forge itself**, the work is self-hosted: see the improvement
+roadmap in [`self/prompts/`](self/README.md) and the "Maintaining Forge"
+note below. (The external harness only bootstrapped Forge; it no longer drives
+the build.)
+
+## Maintaining Forge (self-only)
+
+Forge **self-hosts**: it maintains itself with itself. These are for working on
+the **framework**, not on an adopter's project — they live in the
+self-development workspace and are **excluded from the adopter export**
+(`forge.manifest.json → selfOnly`):
+
+| Do this…                       | …to                                                            |
+| ------------------------------ | -------------------------------------------------------------- |
+| [`/forge-contribute`](.claude/commands/forge-contribute.md) | Improve Forge itself (skill/tool/template/doc): scope vs. the constitution → record in `self/` → apply → gate → land. |
+| `make forge-selfcheck`         | Run the constitution gate (selfcheck invariants + docs-freshness). |
+| `make forge-export DEST=<dir>` | Produce a clean adopter copy of Forge (no copy-paste).          |
+
+Forge's own source of truth for evolution is [`self/`](self/README.md)
+(`FR-S*` capabilities, `ADR-S*` decisions); the constitution remains
+[`FORGE.md`](FORGE.md). Full details: [`CONTRIBUTING.md`](CONTRIBUTING.md).
+`/forge-contribute` is **self-only** and is intentionally **not** in the adopter
+skills catalog (the selfcheck gate exempts it from registration-parity).
 
 ## Skills catalog
 
@@ -121,6 +146,7 @@ harness in dependency order; each is autonomous.
 | **forge-run-phase**   | Execute a whole phase, each prompt in a subagent      | `/forge-run-phase`    |
 | **forge-next**        | Execute only the next eligible prompt (safe, 1×)      | `/forge-next`         |
 | **forge-freechat**    | Quick colloquial change / hotfix (small, no new requirement) | `/forge-freechat` |
+| **forge-status**      | Show suite progress + the next eligible prompt (read-only) | `/forge-status`    |
 | **forge-review**      | Independent review of a change before integrating     | `/forge-review`       |
 | **forge-sync-docs**   | Regenerate derived docs (status, traceability, …)     | `/forge-sync-docs`    |
 | **forge-add-requirement** | Add/alter a requirement and propagate the matrix  | `/forge-add-requirement` |

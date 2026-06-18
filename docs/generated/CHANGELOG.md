@@ -9,6 +9,7 @@ Generated from **Conventional Commits**. Versions are marked by SemVer tags (`v*
 
 #### Features
 
+- **forge-selfhost:** self-hosting — self/ workspace + /forge-contribute + forge-selfcheck gate + manifest/export + CI
 - **forge-conventions:** add EC-D7 (optimistic mutations reconcile + roll back) to the catalog
 - **forge-conventions:** Conventions Map (EC) — cross-cutting rules at init + reviewer + add-convention
 - **forge-skills:** forge-freechat — safe fast lane for quick changes

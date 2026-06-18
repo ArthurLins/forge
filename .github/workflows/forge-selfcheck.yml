@@ -1,0 +1,43 @@
+# =============================================================================
+# Forge — OWN CI (self-only). Not the adopter template in templates/ci/.
+#
+# Runs Forge's constitution gate on every change to the framework:
+#   make forge-selfcheck  ==  selfcheck (invariants) + docs-freshness (no drift).
+#
+# Runtime is Python 3 only — no project stack is assumed (the same neutral
+# runtime the prompt-suite engine and the derived-docs generators already use).
+# This workflow is part of Forge's self-development tooling
+# (forge.manifest.json -> selfOnly) and is excluded from the adopter export.
+# =============================================================================
+name: forge-selfcheck
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: forge-selfcheck-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  selfcheck:
+    name: Constitution gate (selfcheck + docs-freshness)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history: the changelog (part of docs-freshness) derives from it.
+          fetch-depth: 0
+
+      - name: Set up Python (the only runtime Forge's tooling needs)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Run the Forge constitution gate
+        run: make forge-selfcheck

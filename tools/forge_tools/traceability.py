@@ -7,8 +7,8 @@ code files · test files · status), linking requirement -> code -> test
 ``forge.config.json`` (with stack-neutral defaults), so nothing about a
 specific language or layout is baked in.
 
-Tag forms recognized (generalized from PedPlus's ``@requirement RFxx`` /
-``@businessRule RNxx``):
+Tag forms recognized (a generalization of stack-specific tag conventions such
+as ``@requirement RFxx`` / ``@businessRule RNxx``):
 
   * ``@requirement <ID>``  — links a requirement id (FR/NFR/CR/UC/EN)
   * ``@rule <ID>`` / ``@businessRule <ID>`` — links a business rule (BR)
