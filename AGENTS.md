@@ -101,6 +101,8 @@ harness in dependency order; each is autonomous.
 | **forge-review**      | Independent review of a change before integrating     | `/forge-review`       |
 | **forge-sync-docs**   | Regenerate derived docs (status, traceability, …)     | `/forge-sync-docs`    |
 | **forge-add-requirement** | Add/alter a requirement and propagate the matrix  | `/forge-add-requirement` |
+| **forge-new-feature** | Scaffold a feature (pluggable; checklist fallback)    | `/forge-new-feature`  |
+| **forge-new-module**  | Scaffold a module (pluggable; modular projects only)  | `/forge-new-module`   |
 
 ## Language & naming conventions
 
