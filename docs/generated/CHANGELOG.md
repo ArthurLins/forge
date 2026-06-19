@@ -33,4 +33,5 @@ Generated from **Conventional Commits**. Versions are marked by SemVer tags (`v*
 
 #### Chores
 
+- **self:** archive forge-validate (S1.1) and team hardening (S1.2) in the self roadmap
 - **forge:** scaffold repository + manifesto and guides
