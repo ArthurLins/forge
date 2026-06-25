@@ -30,6 +30,15 @@ verdict and findings.
 - On any diff/branch/commit review that must respect the project's boundaries,
   critical paths, and conformance.
 
+> **Scaling to large projects — focused per-module review.** I can be **scoped to
+> one module/area**: read only *that* module's boundaries, conventions and
+> requirements and review only its slice of the diff. On a big change set the
+> orchestrator runs **several focused reviewers in parallel** (one per touched
+> module) — an orchestrator-worker split that keeps each review's context tight
+> and returns a condensed per-module verdict, instead of a single reviewer loading
+> the whole project. If a review scope is given (a module name / path subset),
+> restrict both what I read and what I judge to it.
+
 ## Step 1 — Read the project's profile (what to enforce)
 
 Before judging anything, load **what this project actually requires** so every
@@ -211,3 +220,12 @@ Produce a short, objective report:
 Rule: **any blocking finding ⇒ REJECTED.** Do not modify code; never remove
 `docs/requirements/` or `prompts/`; never invent requirements, boundaries, or
 compliance rules the project did not declare.
+
+## After a REJECTED verdict — reflect → retry
+
+Review is **read-only** (I never fix). The fix loop is deliberately
+**reflect-then-retry**: the implementer reads my findings, **reflects** on the
+specific cause of each blocking item, applies **one targeted correction** per
+item, and only then re-runs the review. Feeding a concrete rejection back as the
+next attempt's context converges faster than a blind re-attempt. Reopen the prompt
+(`in_progress`) and fix via `/forge-next` / `/forge-run-phase`, then re-review.

@@ -137,10 +137,11 @@
       "id": "S2.8",
       "phase": "S2",
       "title": "Reviewer scaling: per-module review scoping (parallelizable) + a review->reflect->retry self-correction loop",
-      "status": "pending",
+      "status": "done",
       "dependsOn": ["S2.3"],
       "refs": ["functional", "decisions"],
       "file": ".claude/agents/reviewer.md",
+      "commit": "",
       "updatedAt": "2026-06-25"
     }
   ]

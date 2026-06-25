@@ -68,9 +68,18 @@ reading every knob from `forge.config.json` and `docs/requirements/`.
    summary, the findings table, and the commands the reviewer ran. Print the
    verdict and a short findings summary to this thread.
 
-4. **If REJECTED**, list the recommended actions (e.g. reopen the prompt as
-   `in_progress` and fix via `/forge-run-phase` / `/forge-next`). Do **not** apply
-   any fix here.
+4. **If REJECTED**, list the recommended actions and use a **reflect → retry**
+   loop: feed the specific findings back, reflect on the cause of each blocking
+   item, apply **one targeted correction** per item, then re-review — this
+   converges faster than a blind re-attempt. Reopen the prompt as `in_progress`
+   and fix via `/forge-run-phase` / `/forge-next`. Do **not** apply any fix here.
+
+> **Large change sets — review per module, in parallel.** When a diff spans
+> several modules, run **one focused `reviewer` per touched module** (each scoped
+> to that module's boundaries / requirements / slice of the diff) instead of a
+> single whole-project review. The focused reviews run concurrently and each
+> returns a tight, condensed verdict; aggregate them into one report. This keeps
+> each review's context small as the project grows.
 
 ## Notes
 

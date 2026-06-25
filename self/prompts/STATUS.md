@@ -12,14 +12,14 @@
 | Metric | Count |
 | ------ | ----- |
 | Total prompts | 12 |
-| Done | 11 |
+| Done | 12 |
 | In progress | 0 |
 | Blocked | 0 |
-| Pending | 1 |
+| Pending | 0 |
 
-**Overall progress:** 11/12 done (92%)
+**Overall progress:** 12/12 done (100%)
 
-**Next eligible:** `S2.8` — Reviewer scaling: per-module review scoping (parallelizable) + a review->reflect->retry self-correction loop
+**Next eligible:** DONE — every prompt is complete.
 
 ---
 
@@ -37,7 +37,7 @@
 | [v] | S1.1 | forge-validate: adopter project integrity gate + optional strict-validation CI selectable at /forge-init | S0.1 | functional, decisions | `ff1952a` |
 | [v] | S1.2 | Multi-contributor hardening: sharded claims + merge queue/required checks + union-merge for derived docs + teams guide | S1.1 | functional, decisions | `1ddddcb` |
 
-## Phase S2 — Scale & async-collaboration readiness (7/8)
+## Phase S2 — Scale & async-collaboration readiness (8/8)
 
 | Status | ID | Title | Depends on | Refs | Commit |
 | ------ | -- | ----- | ---------- | ---- | ------ |
@@ -48,4 +48,4 @@
 | [v] | S2.5 | WIP limits + dependency-aware scheduling: forge.config WIP cap, claim at most N, prefer prompts that unblock the most dependents | S2.4 | functional, decisions | `3789444` |
 | [v] | S2.6 | Source-of-truth conflict guard: forge-validate fails on git conflict markers + verifies ref->requirement consistency pre-merge | S2.1 | functional, decisions | `f98e495` |
 | [v] | S2.7 | Optional module/requirement ownership metadata (inverse-Conway routing) surfaced in STATUS and the teams guide | S2.3 | functional, decisions | `cff26f6` |
-| [ ] | S2.8 | Reviewer scaling: per-module review scoping (parallelizable) + a review->reflect->retry self-correction loop | S2.3 | functional, decisions | — |
+| [v] | S2.8 | Reviewer scaling: per-module review scoping (parallelizable) + a review->reflect->retry self-correction loop | S2.3 | functional, decisions | — |
