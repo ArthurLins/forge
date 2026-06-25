@@ -9,6 +9,7 @@ Generated from **Conventional Commits**. Versions are marked by SemVer tags (`v*
 
 #### Features
 
+- **forge-engine:** optional ownership metadata (inverse-Conway) (S2.7)
 - **forge-tools:** module-scoped + incremental derived docs (S2.3)
 - **forge-engine:** WIP limits + dependency-aware scheduling (S2.5)
 - **forge-validate:** source-of-truth conflict guard (S2.6)

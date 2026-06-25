@@ -130,7 +130,7 @@
       "dependsOn": ["S2.3"],
       "refs": ["functional", "decisions"],
       "file": "prompts/state.schema.md",
-      "commit": "",
+      "commit": "cff26f6",
       "updatedAt": "2026-06-25"
     },
     {

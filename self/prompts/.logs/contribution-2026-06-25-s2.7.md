@@ -33,5 +33,7 @@ root seeds untouched · minimal & backward-compatible. Human confirmation: grant
   STATUS (no drift). `make forge-selfcheck` → PASS.
 
 ## Outcome
-- _(filled at archive)_ Landed on `main` as `feat(forge-engine):`; changelog
-  refreshed via a `chore(prompts):` bookkeeping commit. `S2.7` → `done` (S2 7/8).
+- Landed on `main` as `feat(forge-engine): optional ownership metadata
+  (inverse-Conway) (S2.7)` — commit **`cff26f6`**; changelog refreshed via a
+  `chore(prompts):` bookkeeping commit. `S2.7` → `done` (phase S2 now 7/8). Not
+  pushed.
