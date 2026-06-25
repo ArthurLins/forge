@@ -39,5 +39,7 @@ confirmation: granted ("rode todos").
 - `make forge-selfcheck` → PASS.
 
 ## Outcome
-- _(filled at archive)_ Landed on `main` as `feat(forge-engine):`; changelog
-  refreshed via a `chore(prompts):` bookkeeping commit. `S2.5` → `done` (S2 5/8).
+- Landed on `main` as `feat(forge-engine): WIP limits + dependency-aware
+  scheduling (S2.5)` — commit **`3789444`**; changelog refreshed via a
+  `chore(prompts):` bookkeeping commit. `S2.5` → `done` (phase S2 now 5/8). Not
+  pushed.

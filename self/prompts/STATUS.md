@@ -45,7 +45,7 @@
 | [v] | S2.2 | Prompt context discipline: just-in-time @requirement retrieval + load-bearing instructions at start/end + worked examples (context budget) | S2.1 | functional, decisions | `98c8eb9` |
 | [ ] | S2.3 | Module-scoped requirements + scoped/incremental derived-docs regeneration (per-module traceability/changelog/status) | S2.1 | functional, decisions | — |
 | [v] | S2.4 | Claim lifecycle hardening: heartbeat/TTL + retry count + auto-release of dead claims + auto-blocked after N failures | S2.1 | functional, decisions | `7233382` |
-| [v] | S2.5 | WIP limits + dependency-aware scheduling: forge.config WIP cap, claim at most N, prefer prompts that unblock the most dependents | S2.4 | functional, decisions | — |
+| [v] | S2.5 | WIP limits + dependency-aware scheduling: forge.config WIP cap, claim at most N, prefer prompts that unblock the most dependents | S2.4 | functional, decisions | `3789444` |
 | [v] | S2.6 | Source-of-truth conflict guard: forge-validate fails on git conflict markers + verifies ref->requirement consistency pre-merge | S2.1 | functional, decisions | `f98e495` |
 | [ ] | S2.7 | Optional module/requirement ownership metadata (inverse-Conway routing) surfaced in STATUS and the teams guide | S2.3 | functional, decisions | — |
 | [ ] | S2.8 | Reviewer scaling: per-module review scoping (parallelizable) + a review->reflect->retry self-correction loop | S2.3 | functional, decisions | — |

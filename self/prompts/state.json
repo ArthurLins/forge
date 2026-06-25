@@ -107,7 +107,7 @@
       "dependsOn": ["S2.4"],
       "refs": ["functional", "decisions"],
       "file": "prompts/next_prompt.py",
-      "commit": "",
+      "commit": "3789444",
       "updatedAt": "2026-06-25"
     },
     {
