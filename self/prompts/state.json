@@ -113,10 +113,11 @@
       "id": "S2.6",
       "phase": "S2",
       "title": "Source-of-truth conflict guard: forge-validate fails on git conflict markers + verifies ref->requirement consistency pre-merge",
-      "status": "pending",
+      "status": "done",
       "dependsOn": ["S2.1"],
       "refs": ["functional", "decisions"],
       "file": "tools/forge_tools/validate.py",
+      "commit": "",
       "updatedAt": "2026-06-25"
     },
     {

@@ -37,6 +37,13 @@ Checks
                                   expected top-level keys.
   docs-freshness           (hard) derived docs are not stale (reuses the sync-docs
                                   --check logic).
+  source-of-truth-integrity (hard/warn) the human-edited source of truth
+                                  (docs/requirements/*.md, prompts/state.json,
+                                  forge.config.json) carries NO git conflict
+                                  markers (a silently mis-merged spec → hard
+                                  fail); every prompt `ref` resolves to an existing
+                                  requirement doc → WARNING otherwise (skipped
+                                  pre-genesis).
 
 Usage
 -----
@@ -66,6 +73,14 @@ PROMPTS_DIR = "prompts"
 CLAIMS_DIR = "prompts/claims"
 CONFIG_REL = "forge.config.json"
 CONVENTIONS_REL = "docs/requirements/conventions.md"
+REQ_DIR_REL = "docs/requirements"
+
+# Unambiguous git conflict markers (exactly 7 chars at line start, then a space
+# or EOL). The middle `=======` is intentionally NOT matched alone — it collides
+# with markdown setext-heading underlines and table rules; a real conflict always
+# carries `<<<<<<<` and `>>>>>>>`, so matching those (plus the diff3 `|||||||`)
+# detects it without false positives on prose.
+CONFLICT_MARKER = re.compile(r"^(?:<{7}|>{7}|\|{7})(?:\s|$)")
 
 VALID_STATUSES = {"pending", "in_progress", "blocked", "done"}
 
@@ -637,6 +652,89 @@ def check_docs_freshness() -> CheckResult:
     return res
 
 
+def _iter_source_of_truth_files() -> List[str]:
+    """Repo-relative source-of-truth files to scan for conflict markers: every
+    `*.md` under docs/requirements/, plus state.json and forge.config.json."""
+    files: List[str] = []
+    for rel in (STATE_REL, CONFIG_REL):
+        if os.path.isfile(common.repo_path(rel)):
+            files.append(rel)
+    req_dir = common.repo_path(REQ_DIR_REL)
+    if os.path.isdir(req_dir):
+        for dirpath, _dirnames, filenames in os.walk(req_dir):
+            for fn in sorted(filenames):
+                if fn.endswith(".md"):
+                    files.append(
+                        common.rel_to_repo(os.path.join(dirpath, fn))
+                    )
+    return files
+
+
+def _requirement_doc_basenames() -> Set[str]:
+    """Basenames (without `.md`) of the requirement docs that exist."""
+    out: Set[str] = set()
+    req_dir = common.repo_path(REQ_DIR_REL)
+    if not os.path.isdir(req_dir):
+        return out
+    for fn in os.listdir(req_dir):
+        if fn.endswith(".md"):
+            out.add(fn[: -len(".md")])
+    return out
+
+
+def check_source_of_truth_integrity() -> CheckResult:
+    """Guard the human-edited source of truth against silent merge damage.
+
+    The requirement docs and `prompts/state.json` are NOT union-merged (they are
+    source, not derived — see docs/guides/teams.md), so a parallel merge can
+    conflict. forge-validate runs as a required merge-queue check (when
+    `ci.strictValidation` is on), so enforcing two protections here stops a
+    broken spec from landing:
+
+      - HARD FAIL on any git conflict marker (`<<<<<<<`, `>>>>>>>`, `|||||||`) in
+        the source of truth — a silently mis-merged spec would otherwise ship;
+      - WARNING when a prompt `ref` does not resolve to an existing requirement
+        doc under docs/requirements/ (skipped pre-genesis, when none exists).
+    """
+    res = CheckResult("source-of-truth-integrity")
+
+    # 1) Conflict markers in the source of truth (hard fail).
+    for rel in _iter_source_of_truth_files():
+        try:
+            with open(
+                common.repo_path(rel), encoding="utf-8", errors="replace"
+            ) as fh:
+                for lineno, line in enumerate(fh, 1):
+                    if CONFLICT_MARKER.match(line):
+                        res.fail(
+                            "{0}:{1} contains a git conflict marker — resolve "
+                            "the merge before landing".format(rel, lineno)
+                        )
+        except OSError:
+            continue
+
+    # 2) ref -> requirement-doc consistency (warning). Only meaningful once
+    #    genesis has produced requirement docs; skip cleanly otherwise.
+    doc_names = _requirement_doc_basenames()
+    if doc_names:
+        state, err = _load_state()
+        if not err and state:
+            for p in state.get("prompts") or []:
+                pid = str(p.get("id", "?"))
+                for ref in p.get("refs") or []:
+                    ref_s = str(ref).strip()
+                    if not ref_s:
+                        continue
+                    base = ref_s[:-3] if ref_s.endswith(".md") else ref_s
+                    if base not in doc_names:
+                        res.warn(
+                            "prompt {0} references `{1}`, which is not a "
+                            "requirement doc under {2}/ — fix the ref or add "
+                            "the doc".format(pid, ref_s, REQ_DIR_REL)
+                        )
+    return res
+
+
 # --------------------------------------------------------------------------- #
 # Runner
 # --------------------------------------------------------------------------- #
@@ -649,6 +747,7 @@ def run_all() -> List[CheckResult]:
         check_conventions_integrity(),
         check_config_integrity(),
         check_docs_freshness(),
+        check_source_of_truth_integrity(),
     ]
 
 
