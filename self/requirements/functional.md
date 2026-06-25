@@ -43,7 +43,11 @@ capabilities are added here via [`/forge-contribute`](../../.claude/commands/for
 - **FR-S9 — Derived-docs generators + sync (`/forge-sync-docs`, `tools/forge_tools/*`,
   the `Makefile`).** Generate STATUS, the traceability matrix and the changelog
   from source, with a `--check` mode that fails on drift; orchestrate core
-  generators plus declared stack `docsHooks`. (Serves principles 6, 7.)
+  generators plus declared stack `docsHooks`. **Scales to large projects** (`S2.3`):
+  optional `traceability.scopes` + `--scope` regenerate a per-module matrix,
+  `sync-docs --only` runs a subset, and `changelog --max` bounds growth — all
+  backward-compatible (no scopes/flags = the single global matrix, unchanged;
+  `ADR-S5`). (Serves principles 6, 7.)
 - **FR-S10 — Status view (`/forge-status`).** Present read-only suite progress and
   the next eligible prompt from the state machine. (Serves principles 3, 6.)
 

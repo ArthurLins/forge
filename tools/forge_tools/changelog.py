@@ -157,7 +157,15 @@ def _render_section(commits: List[Commit], show_hash: bool) -> str:
     return "\n".join(lines)
 
 
-def build_report() -> str:
+def build_report(unreleased_max: Optional[int] = None) -> str:
+    """Render the changelog from git history.
+
+    ``unreleased_max`` OPTIONALLY bounds the **Unreleased** section to its most
+    recent N entries (a ``> … (k older entries omitted)`` note is appended when
+    truncated). ``None`` (the default) leaves the Unreleased section unbounded —
+    byte-identical to today's output. Released sections are never bounded (they
+    are immutable history behind a tag).
+    """
     name = common.project_name()
     tags = _version_tags()
 
@@ -190,9 +198,28 @@ def build_report() -> str:
         # the docs-freshness gate would chase its own tail; released sections,
         # being behind an immutable tag, pin the hash.
         show_hash = title != "Unreleased"
+        # Optionally bound the (most-recent-first) Unreleased section so an
+        # unbounded changelog cannot grow without limit. Released sections are
+        # immutable history and are never truncated.
+        omitted = 0
+        if (
+            title == "Unreleased"
+            and unreleased_max is not None
+            and unreleased_max >= 0
+            and len(commits) > unreleased_max
+        ):
+            omitted = len(commits) - unreleased_max
+            commits = commits[:unreleased_max]
         lines.append("## {}".format(title))
         lines.append("")
         lines.append(_render_section(commits, show_hash))
+        if omitted:
+            lines.append(
+                "> … ({} older {} omitted)".format(
+                    omitted, "entry" if omitted == 1 else "entries"
+                )
+            )
+            lines.append("")
 
     if not any_commits:
         lines.append("_No commits in history yet._")
@@ -201,10 +228,44 @@ def build_report() -> str:
     return "\n".join(lines).rstrip("\n") + "\n"
 
 
+def _extract_max(argv: List[str]) -> Tuple[Optional[int], List[str]]:
+    """Pull ``--max N`` out of argv, returning ``(n_or_None, rest)``.
+
+    A missing or unparseable value leaves the bound unset (unbounded — today's
+    behavior). The remaining args flow to ``parse_common_args`` unchanged.
+    """
+    max_n: Optional[int] = None
+    rest: List[str] = []
+    i = 0
+    while i < len(argv):
+        arg = argv[i]
+        value: Optional[str] = None
+        if arg == "--max":
+            i += 1
+            if i < len(argv):
+                value = argv[i]
+        elif arg.startswith("--max="):
+            value = arg[len("--max="):]
+        else:
+            rest.append(arg)
+            i += 1
+            continue
+        if value is not None:
+            try:
+                max_n = int(value)
+            except ValueError:
+                sys.stderr.write(
+                    "[changelog] --max expects an integer; ignoring '{}'.\n".format(value)
+                )
+        i += 1
+    return max_n, rest
+
+
 def main(argv: List[str]) -> int:
+    unreleased_max, rest = _extract_max(argv)
     default_out = common.repo_path(common.generated_dir(), DEFAULT_OUT_BASENAME)
-    check, out_path = common.parse_common_args(argv, default_out)
-    content = build_report()
+    check, out_path = common.parse_common_args(rest, default_out)
+    content = build_report(unreleased_max=unreleased_max)
     return common.emit(content, out_path, check, "changelog")
 
 

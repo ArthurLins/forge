@@ -24,7 +24,7 @@ with their titles and the source document.
 
 import os
 import re
-from typing import Dict, List, NamedTuple, Optional
+from typing import Dict, Iterable, List, NamedTuple, Optional, Set
 
 from . import common
 
@@ -95,18 +95,49 @@ def _natural_key(rid: str):
     return (rid, 0)
 
 
-def parse_requirements(req_dir: Optional[str] = None) -> List[Requirement]:
+def _normalize_doc_basenames(docs: Iterable[str]) -> Set[str]:
+    """Accept ``"functional.md"`` or ``"functional"`` and return a basename set.
+
+    Lets a scope's ``reqDocs`` list the requirement documents it owns by either
+    the bare stem or the full ``.md`` basename; both forms are matched.
+    """
+    out: Set[str] = set()
+    for raw in docs:
+        base = os.path.basename(str(raw).strip())
+        if not base:
+            continue
+        out.add(base)
+        if base.endswith(".md"):
+            out.add(base[: -len(".md")])
+        else:
+            out.add(base + ".md")
+    return out
+
+
+def parse_requirements(
+    req_dir: Optional[str] = None,
+    source_docs: Optional[Iterable[str]] = None,
+) -> List[Requirement]:
     """Return all declared requirement IDs across the requirement documents.
 
     A missing requirements folder (fresh checkout) yields an empty list — not
     an error, since the generators must run with no project content present.
+
+    ``source_docs`` is an OPTIONAL allow-list of requirement-document basenames
+    (e.g. ``"functional.md"`` or ``"functional"``): when given, only requirements
+    declared in those documents are returned. It is used only by scoped
+    traceability; the default (``None``) returns every declared requirement —
+    unchanged behavior.
     """
     base = req_dir or common.repo_path(REQ_DIR_REL)
     result: List[Requirement] = []
     if not os.path.isdir(base):
         return result
+    allow = _normalize_doc_basenames(source_docs) if source_docs is not None else None
     by_id: Dict[str, Requirement] = {}
     for filename, prefix, kind in DOC_PREFIXES:
+        if allow is not None and filename not in allow:
+            continue
         path = os.path.join(base, filename)
         if not os.path.isfile(path):
             continue

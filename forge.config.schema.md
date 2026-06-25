@@ -106,10 +106,33 @@ Knobs for the traceability generator (`tools/forge_tools/traceability.py`).
 | ------------ | -------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | `globs`      | string[] | `["apps/**/*","libs/**/*","src/**/*","packages/**/*","modules/**/*","examples/**/*"]` | Repo-relative source patterns scanned for tags. `**` is recursive; `*` does not cross `/`. The defaults are the conventional locations a project's **own** source lives; Forge's framework folders (`templates/`, `tools/`, `docs/`) are excluded so tag *examples* in Forge's prose are not picked up. |
 | `tagAliases` | object   | `{"requirement":["requirement","req"],"rule":["rule","businessRule"],"convention":["convention","conv"]}`  | Maps a **link kind** to the tag keywords that record it. `requirement` links a requirement id (`FR`/`NFR`/`CR`/`UC`/`EN`); `rule` links a business rule (`BR`); `convention` links an engineering convention (`EC`) from the [Conventions Map](#the-conventions-map-ec-tag). Project-declared aliases are **merged on top of** the defaults, so adding an alias never drops the built-in ones. |
+| `scopes`     | object[] | `[]` (absent → a single global matrix) | OPTIONAL. Named **module subsets** a large project can regenerate a matrix for independently, instead of always rebuilding the full matrix over the whole tree. See [`traceability.scopes`](#traceabilityscopes-optional) below. |
 
 > A generalization of stack-specific, hardcoded tag conventions (such as
 > `@requirement RFxx` / `@businessRule RNxx`). In Forge the tag keywords and the
 > scanned globs are config, not code.
+
+#### `traceability.scopes` (OPTIONAL)
+
+By default the traceability generator builds **one global matrix** over
+`traceability.globs` covering every declared requirement, written to
+`<generatedDir>/traceability.md`. A large, modular project can additionally
+declare **scopes** — each a named subset of the tree — so a matrix can be
+regenerated (and CI-verified) **per module** rather than rebuilt over the whole
+repo every time. **Absent or `[]` → exactly today's single global matrix** (no
+behavior change).
+
+Each scope entry:
+
+| Field     | Type     | Required | Meaning                                                                                                       |
+| --------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------ |
+| `name`    | string   | yes      | A slug. Names the scoped matrix file `<generatedDir>/traceability.<name>.md` and the `--scope <name>` flag.    |
+| `globs`   | string[] | yes      | The code subset for this module (same glob syntax as `traceability.globs`). Only these files are scanned.      |
+| `reqDocs` | string[] | no       | Requirement-document basenames the scope **owns** (e.g. `"functional.md"` or the bare stem `"functional"`). When set, the scoped matrix includes only requirements declared in those docs. When omitted, the scoped matrix includes **all** declared requirements but reports coverage from the scope's code only. |
+
+A scoped matrix is byte-stable like the global one, so it is committed and
+covered by the docs-freshness gate. `sync-docs` regenerates (and, in `--check`,
+verifies) the global matrix **and** one matrix per declared scope.
 
 #### The Conventions Map (`EC`) tag
 
@@ -124,6 +147,23 @@ feature-building prompt's context, and the [`reviewer`](../.claude/agents/review
 subagent's `EC`-compliance dimension. The tag merely lets a project that wants it
 record *which* features honored *which* convention. Neutral default: the alias is
 recognized, but no project is required to use it.
+
+#### Generator flags — scoped / incremental regeneration
+
+The derived-docs generators accept optional flags so a large project can
+regenerate **a subset**, not always the full set. All are additive: **with no
+flag, output is byte-for-byte unchanged.**
+
+| Flag | Generator | Meaning |
+| ---- | --------- | ------- |
+| `--scope <name>` | `traceability` | Build the **scoped** matrix for the named [`traceability.scopes`](#traceabilityscopes-optional) entry into `<generatedDir>/traceability.<name>.md` (scan only that scope's `globs`; include only the requirements it owns when `reqDocs` is set). Without `--scope`: the global matrix, unchanged. An unknown scope name is a clean error (exit `2`). |
+| `--only <gens>` | `sync-docs` | Run just a subset of the core generators — `status`, `traceability`, `changelog` — given as a comma-list or by repeating the flag (e.g. `--only changelog` or `--only status,traceability`). Absent: all three (unchanged). Combines with `--core-only` and `--check`. |
+| `--max <N>` | `changelog` | Bound the **Unreleased** section to its most recent `N` entries, appending a `> … (k older entries omitted)` note when truncated. Released sections (behind a tag) are never bounded. Absent: unbounded (unchanged). |
+
+> `sync-docs` is scope-aware: when `traceability.scopes` is declared it
+> regenerates (and, in `--check`, verifies) the global matrix **plus** one
+> matrix per scope. With no scopes declared it produces only the global matrix,
+> exactly as before.
 
 ### `docsHooks` (array) — OPTIONAL stack plugins
 

@@ -82,10 +82,11 @@
       "id": "S2.3",
       "phase": "S2",
       "title": "Module-scoped requirements + scoped/incremental derived-docs regeneration (per-module traceability/changelog/status)",
-      "status": "pending",
+      "status": "done",
       "dependsOn": ["S2.1"],
       "refs": ["functional", "decisions"],
       "file": "tools/forge_tools/traceability.py",
+      "commit": "",
       "updatedAt": "2026-06-25"
     },
     {

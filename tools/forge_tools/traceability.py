@@ -28,7 +28,7 @@ import fnmatch
 import os
 import re
 import sys
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 from . import common
 from .requirements import parse_requirements, Requirement
@@ -236,13 +236,32 @@ def _code_cell(files: Set[str]) -> str:
     return "<br>".join("`{}`".format(f) for f in sorted(files))
 
 
-def build_report() -> str:
+def build_report(
+    globs: Optional[List[str]] = None,
+    req_docs: Optional[List[str]] = None,
+    title_suffix: str = "",
+) -> str:
+    """Render a traceability matrix.
+
+    With no arguments this is the **global** matrix over ``traceability.globs``
+    and every declared requirement — its output is byte-for-byte what it has
+    always been. The optional parameters drive a **scoped** matrix:
+
+      * ``globs`` — scan only this code subset (a scope's globs) instead of the
+        configured global globs.
+      * ``req_docs`` — when given, include only requirements declared in these
+        requirement-document basenames (the scope's owned docs); when ``None``,
+        every declared requirement is included but coverage is reported from the
+        (scoped) code only.
+      * ``title_suffix`` — appended to the matrix title (e.g. ``" — scope a"``).
+    """
     config = common.load_config()
-    globs = common.traceability_globs(config)
+    if globs is None:
+        globs = common.traceability_globs(config)
     aliases = common.tag_aliases(config)
     name = common.project_name(config)
 
-    declared: List[Requirement] = parse_requirements()
+    declared: List[Requirement] = parse_requirements(source_docs=req_docs)
     declared_ids = {r.id for r in declared}
     raw_index = scan(globs, aliases)
 
@@ -280,7 +299,7 @@ def build_report() -> str:
     lines: List[str] = []
     lines.append(HEADER)
     lines.append("")
-    lines.append("# {} — Traceability Matrix".format(name))
+    lines.append("# {} — Traceability Matrix{}".format(name, title_suffix))
     lines.append("")
     lines.append(
         "> **GENERATED — DO NOT EDIT BY HAND.** Produced from `@requirement` / "
@@ -329,12 +348,66 @@ def build_report() -> str:
     return "\n".join(lines).rstrip("\n") + "\n"
 
 
+def _extract_scope(argv: List[str]) -> Tuple[Optional[str], List[str]]:
+    """Pull ``--scope NAME`` out of argv, returning ``(name_or_None, rest)``.
+
+    The remaining args are handed to ``parse_common_args`` unchanged, so
+    ``--check`` / ``--out`` keep working with or without a scope.
+    """
+    scope: Optional[str] = None
+    rest: List[str] = []
+    i = 0
+    while i < len(argv):
+        arg = argv[i]
+        if arg == "--scope":
+            i += 1
+            if i < len(argv):
+                scope = argv[i]
+        elif arg.startswith("--scope="):
+            scope = arg[len("--scope="):]
+        else:
+            rest.append(arg)
+        i += 1
+    return scope, rest
+
+
+def _find_scope(config: Dict, name: str) -> Optional[Dict]:
+    for scope in common.traceability_scopes(config):
+        if scope.get("name") == name:
+            return scope
+    return None
+
+
 def main(argv: List[str]) -> int:
-    default_out = common.repo_path(
-        common.generated_dir(), DEFAULT_OUT_BASENAME
+    scope_name, rest = _extract_scope(argv)
+
+    if scope_name is None:
+        # Global matrix — byte-identical to today.
+        default_out = common.repo_path(common.generated_dir(), DEFAULT_OUT_BASENAME)
+        check, out_path = common.parse_common_args(rest, default_out)
+        content = build_report()
+        return common.emit(content, out_path, check, "traceability")
+
+    config = common.load_config()
+    scope = _find_scope(config, scope_name)
+    if scope is None:
+        declared = [s.get("name") for s in common.traceability_scopes(config)]
+        known = ", ".join(declared) if declared else "(none declared)"
+        sys.stderr.write(
+            "[traceability] unknown scope '{}'. Declared scopes: {}.\n".format(
+                scope_name, known
+            )
+        )
+        return 2
+
+    out_basename = "traceability.{}.md".format(scope_name)
+    default_out = common.repo_path(common.generated_dir(), out_basename)
+    check, out_path = common.parse_common_args(rest, default_out)
+    content = build_report(
+        globs=scope.get("globs"),
+        req_docs=scope.get("reqDocs"),
+        title_suffix=" — scope {}".format(scope_name),
     )
-    check, out_path = common.parse_common_args(argv, default_out)
-    content = build_report()
     return common.emit(content, out_path, check, "traceability")
 
 

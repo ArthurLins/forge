@@ -146,6 +146,39 @@ def traceability_globs(config: Optional[Dict[str, Any]] = None) -> List[str]:
     return list(DEFAULT_TRACEABILITY_GLOBS)
 
 
+def traceability_scopes(config: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    """Return the declared traceability scopes (``traceability.scopes``), or ``[]``.
+
+    A scope is ``{"name": str, "globs": [str, ...], ["reqDocs": [str, ...]]}`` — a
+    named subset of the tree (``globs``) that a large project can regenerate a
+    matrix for independently, optionally owning a subset of the requirement
+    documents (``reqDocs``, by basename). With none declared the list is empty and
+    the generators produce only today's single global matrix. Stack-neutral.
+    """
+    cfg = config if config is not None else load_config()
+    trace = cfg.get("traceability") or {}
+    scopes = trace.get("scopes")
+    if not isinstance(scopes, list):
+        return []
+    out: List[Dict[str, Any]] = []
+    for entry in scopes:
+        if not isinstance(entry, dict):
+            continue
+        name = str(entry.get("name") or "").strip()
+        globs = entry.get("globs")
+        if not name or not isinstance(globs, list) or not globs:
+            continue
+        scope: Dict[str, Any] = {
+            "name": name,
+            "globs": [str(g) for g in globs],
+        }
+        req_docs = entry.get("reqDocs")
+        if isinstance(req_docs, list) and req_docs:
+            scope["reqDocs"] = [str(d) for d in req_docs]
+        out.append(scope)
+    return out
+
+
 def tag_aliases(config: Optional[Dict[str, Any]] = None) -> Dict[str, List[str]]:
     """Return ``{kind: [keyword, ...]}`` mapping for tag detection.
 

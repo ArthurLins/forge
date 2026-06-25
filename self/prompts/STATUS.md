@@ -12,14 +12,14 @@
 | Metric | Count |
 | ------ | ----- |
 | Total prompts | 12 |
-| Done | 9 |
+| Done | 10 |
 | In progress | 0 |
 | Blocked | 0 |
-| Pending | 3 |
+| Pending | 2 |
 
-**Overall progress:** 9/12 done (75%)
+**Overall progress:** 10/12 done (83%)
 
-**Next eligible:** `S2.3` — Module-scoped requirements + scoped/incremental derived-docs regeneration (per-module traceability/changelog/status)
+**Next eligible:** `S2.7` — Optional module/requirement ownership metadata (inverse-Conway routing) surfaced in STATUS and the teams guide
 
 ---
 
@@ -37,13 +37,13 @@
 | [v] | S1.1 | forge-validate: adopter project integrity gate + optional strict-validation CI selectable at /forge-init | S0.1 | functional, decisions | `ff1952a` |
 | [v] | S1.2 | Multi-contributor hardening: sharded claims + merge queue/required checks + union-merge for derived docs + teams guide | S1.1 | functional, decisions | `1ddddcb` |
 
-## Phase S2 — Scale & async-collaboration readiness (5/8)
+## Phase S2 — Scale & async-collaboration readiness (6/8)
 
 | Status | ID | Title | Depends on | Refs | Commit |
 | ------ | -- | ----- | ---------- | ---- | ------ |
 | [v] | S2.1 | Readiness audit: scale + async-collaboration gap review with an evidence-grounded improvement backlog (ADR-S5) | — | decisions | `0ca8329` |
 | [v] | S2.2 | Prompt context discipline: just-in-time @requirement retrieval + load-bearing instructions at start/end + worked examples (context budget) | S2.1 | functional, decisions | `98c8eb9` |
-| [ ] | S2.3 | Module-scoped requirements + scoped/incremental derived-docs regeneration (per-module traceability/changelog/status) | S2.1 | functional, decisions | — |
+| [v] | S2.3 | Module-scoped requirements + scoped/incremental derived-docs regeneration (per-module traceability/changelog/status) | S2.1 | functional, decisions | — |
 | [v] | S2.4 | Claim lifecycle hardening: heartbeat/TTL + retry count + auto-release of dead claims + auto-blocked after N failures | S2.1 | functional, decisions | `7233382` |
 | [v] | S2.5 | WIP limits + dependency-aware scheduling: forge.config WIP cap, claim at most N, prefer prompts that unblock the most dependents | S2.4 | functional, decisions | `3789444` |
 | [v] | S2.6 | Source-of-truth conflict guard: forge-validate fails on git conflict markers + verifies ref->requirement consistency pre-merge | S2.1 | functional, decisions | `f98e495` |

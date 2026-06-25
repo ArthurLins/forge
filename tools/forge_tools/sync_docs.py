@@ -31,7 +31,7 @@ docsHooks[] entry shape (all in forge.config.json):
 import os
 import subprocess
 import sys
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Set
 
 from . import common
 from . import status as status_mod
@@ -39,17 +39,35 @@ from . import traceability as trace_mod
 from . import changelog as changelog_mod
 
 
-def _run_core(check: bool) -> bool:
-    """Run the three core generators. Returns True if all are in sync/written."""
+CORE_GENERATORS = ("status", "traceability", "changelog")
+
+
+def _run_core(check: bool, only: Optional[Set[str]] = None) -> bool:
+    """Run the core generators. Returns True if all selected are in sync/written.
+
+    ``only`` OPTIONALLY restricts the run to a subset of
+    ``status|traceability|changelog``; ``None`` runs all three (unchanged). When
+    ``traceability`` runs and ``traceability.scopes`` is declared, one scoped
+    matrix is regenerated (or, in ``--check``, verified) per scope after the
+    global matrix — with no scopes declared only the global matrix runs, exactly
+    as before.
+    """
     ok = True
     flags = ["--check"] if check else []
     # status writes a fixed path; traceability/changelog default into generatedDir.
-    if status_mod.main(list(flags)) != 0:
-        ok = False
-    if trace_mod.main(list(flags)) != 0:
-        ok = False
-    if changelog_mod.main(list(flags)) != 0:
-        ok = False
+    if only is None or "status" in only:
+        if status_mod.main(list(flags)) != 0:
+            ok = False
+    if only is None or "traceability" in only:
+        if trace_mod.main(list(flags)) != 0:
+            ok = False
+        for scope in common.traceability_scopes():
+            scope_flags = list(flags) + ["--scope", scope["name"]]
+            if trace_mod.main(scope_flags) != 0:
+                ok = False
+    if only is None or "changelog" in only:
+        if changelog_mod.main(list(flags)) != 0:
+            ok = False
     return ok
 
 
@@ -115,11 +133,49 @@ def _report_diff() -> None:
         sys.stdout.write("\n[sync-docs] nothing to update (idempotent).\n")
 
 
+def _parse_only(argv: List[str]) -> Optional[Set[str]]:
+    """Parse ``--only status|traceability|changelog`` (repeatable / comma-list).
+
+    Returns the selected subset, or ``None`` when ``--only`` is absent (run all
+    three — unchanged). Unknown names are reported to stderr and ignored.
+    """
+    selected: Set[str] = set()
+    present = False
+    i = 0
+    while i < len(argv):
+        arg = argv[i]
+        value: Optional[str] = None
+        if arg == "--only":
+            i += 1
+            if i < len(argv):
+                value = argv[i]
+        elif arg.startswith("--only="):
+            value = arg[len("--only="):]
+        if value is not None:
+            present = True
+            for part in value.split(","):
+                part = part.strip()
+                if not part:
+                    continue
+                if part in CORE_GENERATORS:
+                    selected.add(part)
+                else:
+                    sys.stderr.write(
+                        "[sync-docs] --only: unknown generator '{}' "
+                        "(expected one of {}); ignoring.\n".format(
+                            part, ", ".join(CORE_GENERATORS)
+                        )
+                    )
+        i += 1
+    return selected if present else None
+
+
 def main(argv: List[str]) -> int:
     check = "--check" in argv
     core_only = "--core-only" in argv
+    only = _parse_only(argv)
 
-    ok = _run_core(check)
+    ok = _run_core(check, only)
     if not core_only:
         ok = _run_hooks(check) and ok
 
