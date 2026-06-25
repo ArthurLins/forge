@@ -9,6 +9,7 @@ Generated from **Conventional Commits**. Versions are marked by SemVer tags (`v*
 
 #### Features
 
+- **forge-tools:** module-scoped + incremental derived docs (S2.3)
 - **forge-engine:** WIP limits + dependency-aware scheduling (S2.5)
 - **forge-validate:** source-of-truth conflict guard (S2.6)
 - **forge-engine:** self-healing sharded claims (heartbeat/TTL + retry/auto-block) (S2.4)

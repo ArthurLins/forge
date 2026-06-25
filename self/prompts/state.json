@@ -86,7 +86,7 @@
       "dependsOn": ["S2.1"],
       "refs": ["functional", "decisions"],
       "file": "tools/forge_tools/traceability.py",
-      "commit": "",
+      "commit": "3f2e41c",
       "updatedAt": "2026-06-25"
     },
     {

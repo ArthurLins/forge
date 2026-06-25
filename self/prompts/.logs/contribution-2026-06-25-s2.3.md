@@ -44,6 +44,7 @@ todos").
   --check` fresh → exit 0; `--only` subset; `changelog --max` bounds.
 
 ## Outcome
-- _(filled at archive)_ Landed on `main` as `feat(forge-tools):`; changelog
-  refreshed via a `chore(prompts):` bookkeeping commit. `S2.3` → `done` (phase S2
-  now 6/8); this **unblocks `S2.7` and `S2.8`**.
+- Landed on `main` as `feat(forge-tools): module-scoped + incremental derived docs
+  (S2.3)` — commit **`3f2e41c`**; changelog refreshed via a `chore(prompts):`
+  bookkeeping commit. `S2.3` → `done` (phase S2 now 6/8); **unblocks `S2.7` and
+  `S2.8`**. Not pushed.
