@@ -51,7 +51,11 @@ capabilities are added here via [`/forge-contribute`](../../.claude/commands/for
 
 - **FR-S11 — Prompt-suite engine (`prompts/` + `next_prompt.py` + `state.json`).**
   A machine-readable state machine that selects the next eligible prompt by
-  topological `dependsOn` order. (Serves principle 3.)
+  topological `dependsOn` order. The selector **self-heals** parallel work
+  (`S2.4`): a sharded claim whose `heartbeatAt` goes stale past the TTL
+  (`claims.ttlSeconds`, default 1800s) is auto-released, so a crashed worker never
+  deadlocks its prompt; `forge-validate` warns on expired / over-`maxAttempts`
+  claims (`ADR-S5`). (Serves principles 3, 5.)
 - **FR-S12 — Template family (`templates/`).** Right-sized requirement templates
   (lean↔full), the self-contained prompt template, the ADR template, the layered
   agent-guide template, the conventions catalog, and the CI gate template. The

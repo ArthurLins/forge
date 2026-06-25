@@ -26,9 +26,12 @@ thread stays lean because only a short summary returns.
    **Claim it (parallel-execution safety).** Before delegating, write a claim
    file so a second contributor running the suite in parallel will not pick the
    same prompt: `prompts/claims/<ID>.json` =
-   `{ "promptId": "<ID>", "owner": "<you/agent>", "claimedAt": "<ISO-8601 now>" }`.
-   `prompts/next_prompt.py` skips any claimed prompt, so the other worker selects
-   the next free one (or reports `BLOCKED`/`DONE`).
+   `{ "promptId": "<ID>", "owner": "<you/agent>", "claimedAt": "<ISO-8601 now>",
+   "heartbeatAt": "<ISO-8601 now>" }`. Include the initial `heartbeatAt`;
+   `prompts/next_prompt.py` skips any live-claimed prompt, so the other worker
+   selects the next free one (or reports `BLOCKED`/`DONE`). If you are re-claiming
+   a prompt whose previous claim **expired** (its `heartbeatAt` went stale beyond
+   `claims.ttlSeconds`, default 1800s), carry forward the prior `attempts` value.
 
 2. **Delegate execution to an ISOLATED subagent** (the `Task` tool, a
    general-purpose agent), passing it this self-contained instruction:
@@ -58,11 +61,18 @@ thread stays lean because only a short summary returns.
    > Return a summary of at most 8 lines: what you did, the key files, the final
    > status, and any blockers.
 
+   While the subagent runs, **refresh `heartbeatAt`** on the claim periodically
+   (~every 300s / on each significant step) so a live worker keeps the claim from
+   expiring; if you crash, the heartbeat goes stale and the selector
+   auto-releases the prompt after the TTL.
+
 3. **Release the claim and verify** — when the subagent has marked `<ID>` as
    `done`, **delete `prompts/claims/<ID>.json`** (the claim's job is finished). If
    the prompt did **not** complete, **leave the claim in place** plus the
-   `prompts/.logs/<ID>.note.md` note, so a parallel worker still skips the
-   in-progress prompt. Then run `python3 prompts/next_prompt.py` again.
+   `prompts/.logs/<ID>.note.md` note, and **increment `attempts`** in the claim
+   (carrying any prior value); after `claims.maxAttempts` (default 3) failures,
+   set the prompt's `status` to `blocked` in `prompts/state.json` (the selector
+   already skips `blocked`). Then run `python3 prompts/next_prompt.py` again.
    - If the **same `<ID>`** returns, it did not complete → **stop** and show the
      reason from `prompts/.logs/<ID>.note.md`. Do **not** retry automatically.
    - If it advanced to a different id, the prompt is done.
@@ -80,11 +90,18 @@ thread stays lean because only a short summary returns.
 - **Stack-neutral:** every gate/test/command comes from `forge.config.json →
   ci.commands` and `criticalPaths.paths`, and the source of truth is
   `docs/requirements/`. No tool name is hardcoded here.
-- **Claims convention (parallel-execution safety):** one claim file per in-flight
-  prompt (`prompts/claims/<ID>.json`), written **before** delegating and removed
-  **after** the prompt is `done`; on failure the claim stays put alongside the
-  `.logs/<ID>.note.md` note. Each prompt gets its own file, so claims never
-  conflict with each other or with `state.json`. `forge-validate` checks claims
-  integrity. See [`docs/guides/teams.md`](../../docs/guides/teams.md).
+- **Claims convention (parallel-execution safety + self-healing):** one claim
+  file per in-flight prompt (`prompts/claims/<ID>.json`), written with
+  `claimedAt` AND an initial `heartbeatAt` **before** delegating, `heartbeatAt`
+  refreshed while it runs, and removed **after** the prompt is `done`. On failure
+  the claim stays put alongside the `.logs/<ID>.note.md` note with `attempts`
+  incremented; after `maxAttempts` (default 3) the prompt is set to `blocked`. A
+  crashed worker stops refreshing, so after the TTL (`claims.ttlSeconds`, default
+  1800s) the selector ignores the stale claim and the prompt is eligible again —
+  **no manual deletion needed**. A legacy claim with no `heartbeatAt` is never
+  auto-released. Each prompt gets its own file, so claims never conflict with each
+  other or with `state.json`. `forge-validate` checks claims integrity (and warns
+  on expired/over-attempt claims). See
+  [`docs/guides/teams.md`](../../docs/guides/teams.md).
 - Work only on the suite's prompts; never remove `docs/requirements/` or
   `prompts/`.

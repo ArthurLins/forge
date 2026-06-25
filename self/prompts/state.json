@@ -92,10 +92,11 @@
       "id": "S2.4",
       "phase": "S2",
       "title": "Claim lifecycle hardening: heartbeat/TTL + retry count + auto-release of dead claims + auto-blocked after N failures",
-      "status": "pending",
+      "status": "done",
       "dependsOn": ["S2.1"],
       "refs": ["functional", "decisions"],
       "file": "prompts/next_prompt.py",
+      "commit": "",
       "updatedAt": "2026-06-25"
     },
     {

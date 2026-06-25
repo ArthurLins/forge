@@ -21,8 +21,11 @@ Checks
                                   valid; `prompts/next_prompt.py` runs cleanly.
   claims-integrity         (hard) only if prompts/claims/ exists: each claim file
                                   references a declared prompt and does NOT claim
-                                  a `done` prompt (a stale/leaked claim → fail); a
-                                  very old claim → WARNING. Skipped if no dir.
+                                  a `done` prompt (a stale/leaked claim → fail);
+                                  the OPTIONAL `heartbeatAt`/`attempts` fields are
+                                  shape-checked when present (malformed → fail); a
+                                  very old claim, an expired heartbeat, or an
+                                  over-`maxAttempts` claim → WARNING. No dir → skip.
   requirement-tag-integrity (hard) every `@requirement`/`@rule` id referenced in
                                   source is DECLARED in docs/requirements/. A
                                   dangling tag fails; a declared requirement with
@@ -70,6 +73,13 @@ VALID_STATUSES = {"pending", "in_progress", "blocked", "done"}
 # claim usually means a worker crashed or forgot to release it. Tune to taste —
 # the value is advisory, not a gate.
 STALE_CLAIM_AGE_DAYS = 7
+
+# Self-healing defaults for the optional heartbeat/attempts claim fields. A
+# project overrides these in forge.config.json -> claims.ttlSeconds /
+# claims.maxAttempts; both are optional and fall back to these constants. They
+# MUST match the selector's defaults in prompts/next_prompt.py.
+CLAIM_TTL_SECONDS = 1800
+CLAIM_MAX_ATTEMPTS = 3
 
 # Top-level keys a Forge stack profile is expected to carry (the placeholder
 # ships all of them; genesis fills their values). Documentation-hint keys
@@ -284,7 +294,13 @@ def check_claims_integrity() -> CheckResult:
       - a claim must NOT reference a `done` prompt (a stale/leaked claim that
         would never be released → hard fail);
       - a malformed claim file (bad JSON / mismatched id) → hard fail;
-      - a very old claim → WARNING (likely a crashed/forgotten worker).
+      - the OPTIONAL new fields must be well-shaped when present: `heartbeatAt`
+        a parseable ISO-8601 string, `attempts` a non-negative integer — a
+        malformed value → hard fail (consistent with the malformed-claim fail);
+      - a very old claim (`claimedAt` > STALE_CLAIM_AGE_DAYS) → WARNING;
+      - an EXPIRED claim (heartbeat older than the TTL — the selector
+        auto-releases it) → WARNING;
+      - `attempts` >= maxAttempts on a non-`blocked` prompt → WARNING.
     """
     res = CheckResult("claims-integrity")
     claims_dir = common.repo_path(CLAIMS_DIR)
@@ -310,6 +326,7 @@ def check_claims_integrity() -> CheckResult:
         str(p.get("id")): p.get("status") for p in prompts if p.get("id") is not None
     }
 
+    ttl_seconds, max_attempts = _claims_config()
     now = datetime.datetime.now(datetime.timezone.utc)
     for fname in files:
         claim_id = fname[: -len(".json")]
@@ -354,7 +371,98 @@ def check_claims_integrity() -> CheckResult:
                 "claim {0} is {1} day(s) old (claimedAt {2}) — verify the worker "
                 "is still active or release it".format(fname, age, claimed_at)
             )
+
+        # OPTIONAL self-healing fields. Validate their SHAPE when present (a
+        # malformed value is a hard fail, like a malformed claim), then surface
+        # the lifecycle WARNINGs (expired heartbeat / over-attempt).
+        if "heartbeatAt" in claim:
+            heartbeat = _parse_iso(claim.get("heartbeatAt"))
+            if heartbeat is None:
+                res.fail(
+                    "claim {0} has a malformed `heartbeatAt` — it must be a "
+                    "parseable ISO-8601 string".format(fname)
+                )
+            else:
+                age_seconds = (now - heartbeat).total_seconds()
+                if age_seconds > ttl_seconds:
+                    res.warn(
+                        "claim {0} heartbeat expired ({1:.0f}s > ttl {2}s, "
+                        "heartbeatAt {3}) — the selector auto-releases it; remove "
+                        "it if the worker is gone".format(
+                            fname, age_seconds, ttl_seconds, claim.get("heartbeatAt")
+                        )
+                    )
+
+        if "attempts" in claim:
+            attempts = claim.get("attempts")
+            if not _is_non_negative_int(attempts):
+                res.fail(
+                    "claim {0} has a malformed `attempts` — it must be a "
+                    "non-negative integer".format(fname)
+                )
+            elif attempts >= max_attempts and id_to_status.get(claim_id) != "blocked":
+                res.warn(
+                    "claim {0} reached maxAttempts ({1} >= {2}) — move the prompt "
+                    "to `blocked` or reset attempts".format(
+                        fname, attempts, max_attempts
+                    )
+                )
     return res
+
+
+def _claims_config() -> Tuple[int, int]:
+    """Return ``(ttlSeconds, maxAttempts)`` from forge.config.json -> claims.
+
+    Both fields are optional; an absent / non-positive value falls back to the
+    module constants (same defaults the selector uses).
+    """
+    cfg = common.load_config()
+    claims = cfg.get("claims") if isinstance(cfg, dict) else None
+    claims = claims if isinstance(claims, dict) else {}
+
+    ttl = CLAIM_TTL_SECONDS
+    try:
+        candidate = int(claims.get("ttlSeconds"))
+        if candidate > 0:
+            ttl = candidate
+    except (TypeError, ValueError):
+        pass
+
+    max_attempts = CLAIM_MAX_ATTEMPTS
+    try:
+        candidate = int(claims.get("maxAttempts"))
+        if candidate > 0:
+            max_attempts = candidate
+    except (TypeError, ValueError):
+        pass
+
+    return ttl, max_attempts
+
+
+def _is_non_negative_int(value: Any) -> bool:
+    """True only for a real non-negative integer (rejects bool, str, float)."""
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
+
+def _parse_iso(text: Any) -> Optional[datetime.datetime]:
+    """Parse an ISO-8601 timestamp to an aware UTC datetime, or None.
+
+    Handles a trailing ``Z`` and explicit offsets; a naive timestamp is treated
+    as UTC. A non-string or unparseable value returns None (the caller treats
+    that as a malformed shape).
+    """
+    if not isinstance(text, str) or not text.strip():
+        return None
+    cleaned = text.strip()
+    if cleaned[-1] in ("Z", "z"):
+        cleaned = cleaned[:-1] + "+00:00"
+    try:
+        parsed = datetime.datetime.fromisoformat(cleaned)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=datetime.timezone.utc)
+    return parsed
 
 
 def _claim_age_days(claimed_at: str, now: datetime.datetime) -> Optional[int]:

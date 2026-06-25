@@ -12,12 +12,12 @@
 | Metric | Count |
 | ------ | ----- |
 | Total prompts | 12 |
-| Done | 6 |
+| Done | 7 |
 | In progress | 0 |
 | Blocked | 0 |
-| Pending | 6 |
+| Pending | 5 |
 
-**Overall progress:** 6/12 done (50%)
+**Overall progress:** 7/12 done (58%)
 
 **Next eligible:** `S2.3` — Module-scoped requirements + scoped/incremental derived-docs regeneration (per-module traceability/changelog/status)
 
@@ -37,14 +37,14 @@
 | [v] | S1.1 | forge-validate: adopter project integrity gate + optional strict-validation CI selectable at /forge-init | S0.1 | functional, decisions | `ff1952a` |
 | [v] | S1.2 | Multi-contributor hardening: sharded claims + merge queue/required checks + union-merge for derived docs + teams guide | S1.1 | functional, decisions | `1ddddcb` |
 
-## Phase S2 — Scale & async-collaboration readiness (2/8)
+## Phase S2 — Scale & async-collaboration readiness (3/8)
 
 | Status | ID | Title | Depends on | Refs | Commit |
 | ------ | -- | ----- | ---------- | ---- | ------ |
 | [v] | S2.1 | Readiness audit: scale + async-collaboration gap review with an evidence-grounded improvement backlog (ADR-S5) | — | decisions | `0ca8329` |
 | [v] | S2.2 | Prompt context discipline: just-in-time @requirement retrieval + load-bearing instructions at start/end + worked examples (context budget) | S2.1 | functional, decisions | `98c8eb9` |
 | [ ] | S2.3 | Module-scoped requirements + scoped/incremental derived-docs regeneration (per-module traceability/changelog/status) | S2.1 | functional, decisions | — |
-| [ ] | S2.4 | Claim lifecycle hardening: heartbeat/TTL + retry count + auto-release of dead claims + auto-blocked after N failures | S2.1 | functional, decisions | — |
+| [v] | S2.4 | Claim lifecycle hardening: heartbeat/TTL + retry count + auto-release of dead claims + auto-blocked after N failures | S2.1 | functional, decisions | — |
 | [ ] | S2.5 | WIP limits + dependency-aware scheduling: forge.config WIP cap, claim at most N, prefer prompts that unblock the most dependents | S2.4 | functional, decisions | — |
 | [ ] | S2.6 | Source-of-truth conflict guard: forge-validate fails on git conflict markers + verifies ref->requirement consistency pre-merge | S2.1 | functional, decisions | — |
 | [ ] | S2.7 | Optional module/requirement ownership metadata (inverse-Conway routing) surfaced in STATUS and the teams guide | S2.3 | functional, decisions | — |

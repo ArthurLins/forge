@@ -77,6 +77,18 @@ with project size.
 | ------- | -------- | ------- | ------------------------------------------------------------- |
 | `paths` | string[] | `[]`    | Named flows that **must** be covered by tests (gated by the DoD). **None** by default. |
 
+### `claims` (object) — OPTIONAL
+
+Tunes the **sharded-claim** lifecycle that keeps parallel prompt execution safe
+(see [`docs/guides/teams.md`](docs/guides/teams.md) §2). Both fields are
+optional; **absent = the defaults below**. Read by the prompt selector
+(`prompts/next_prompt.py`) and by `forge-validate`. Stack-neutral.
+
+| Field         | Type   | Default | Meaning                                                                                                  |
+| ------------- | ------ | ------- | -------------------------------------------------------------------------------------------------------- |
+| `ttlSeconds`  | number | `1800`  | Heartbeat TTL. A claim whose `heartbeatAt` is older than this is **expired**: the selector ignores it (the prompt is eligible again — self-healing for a crashed worker), and `forge-validate` warns. A claim with **no** `heartbeatAt` is never auto-released. |
+| `maxAttempts` | number | `3`     | Failed-attempt budget. The orchestrator increments a claim's `attempts` on each failure; after this many it sets the prompt's `status` to `blocked`. `forge-validate` warns on an over-`maxAttempts` claim that is not yet `blocked`. |
+
 ### `docs` (object)
 
 Where the derived-docs generators write their output.
@@ -167,4 +179,7 @@ The continuous-integration profile.
 - `docs.generatedDir` is `docs/generated`; `traceability.globs` /
   `traceability.tagAliases` carry stack-neutral defaults.
 - `requirementTiers.selected` is empty until genesis chooses a tier.
+- **No `claims` overrides** — the claim TTL (`1800s`) and attempt budget (`3`)
+  use their built-in defaults until a project sets `claims.ttlSeconds` /
+  `claims.maxAttempts`.
 - Conventions default to English docs/code and Forge's casing rules.

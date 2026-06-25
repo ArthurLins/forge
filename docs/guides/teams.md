@@ -69,34 +69,59 @@ small file per in-flight prompt.
 **How a claim works.**
 
 - A claim is `prompts/claims/<promptId>.json` =
-  `{ "promptId": "<id>", "owner": "<who>", "claimedAt": "<ISO-8601>" }`.
+  `{ "promptId": "<id>", "owner": "<who>", "claimedAt": "<ISO-8601>",
+  "heartbeatAt": "<ISO-8601>", "attempts": <int> }`. `heartbeatAt` and `attempts`
+  are **optional** self-healing fields (see below); a claim with only
+  `promptId`/`owner`/`claimedAt` is fully valid and behaves as before.
 - One file per in-progress prompt → claims never conflict with **each other** or
   with `state.json` (different paths, no shared lines).
-- `prompts/next_prompt.py` **skips any prompt that has a claim file**, so a
+- `prompts/next_prompt.py` **skips any prompt that has a live claim file**, so a
   second worker selects the next free prompt (or reports `BLOCKED` / `DONE`).
 - Fully backward-compatible: if `prompts/claims/` is absent or holds only
-  `.gitkeep`, selection behaves exactly as before. Reading claims is a plain
-  directory listing — no extra dependency, Python-3 stdlib only.
+  `.gitkeep`, selection behaves exactly as before. Reading claims uses the
+  Python-3 stdlib only — no extra dependency.
+
+**Self-healing (heartbeat + TTL).** While a prompt runs, the orchestrator
+refreshes the claim's `heartbeatAt` (~every 300s / on each significant step). If
+a worker **crashes**, it stops refreshing; once `now − heartbeatAt` exceeds the
+TTL (`claims.ttlSeconds`, default **1800s**) the selector treats the claim as
+**expired** and the prompt becomes eligible again — **no manual deletion
+needed**. Expiry is non-destructive: the stale file is left on disk (a later
+worker overwrites it on re-claim, and `forge-validate` warns about it). A
+**legacy** claim that carries no `heartbeatAt` is **never** auto-released — it is
+honored exactly as before, so old claims keep skipping the prompt until cleared
+by hand.
 
 **The convention the orchestration commands follow.** `/forge-next`,
 `/forge-run` and `/forge-run-phase` all:
 
-1. **Write the claim** for `<ID>` *before* delegating the prompt to its subagent.
-2. **Remove the claim** once `<ID>` is marked `done`.
-3. On **failure**, **leave the claim in place** alongside the
-   `prompts/.logs/<ID>.note.md` note, so a parallel worker keeps skipping the
-   still-in-progress prompt until it is resolved.
+1. **Write the claim** for `<ID>` *before* delegating — `claimedAt` AND an initial
+   `heartbeatAt` (both ISO-8601 now). On a **re-claim** of an expired claim, carry
+   forward the prior `attempts` value.
+2. **Refresh `heartbeatAt`** periodically (~every 300s / on each significant step)
+   while the prompt runs, so a live worker keeps the claim from expiring.
+3. **Remove the claim** once `<ID>` is marked `done`.
+4. On **failure**, **leave the claim in place** alongside the
+   `prompts/.logs/<ID>.note.md` note and **increment `attempts`** (carrying any
+   prior value), so a parallel worker keeps skipping the still-in-progress prompt.
+   After **`claims.maxAttempts`** (default **3**) failures, set the prompt's
+   `status` to `blocked` in `state.json` (the selector already skips `blocked`).
 
 **Integrity is enforced.** `forge-validate`'s **claims-integrity** check fails on
 a claim that references a non-existent prompt or a `done` prompt (a stale/leaked
-claim), and **warns** on a very old claim (a crashed/forgotten worker). The
-framework's own `forge-selfcheck` additionally asserts that the shipped seed's
-`prompts/claims/` holds only `.gitkeep` — no leaked claim is ever distributed.
-`forge-export` resets `prompts/claims/` to just `.gitkeep` in adopter copies.
+claim), or on a malformed `heartbeatAt`/`attempts` shape; it **warns** on a very
+old claim, an **expired** heartbeat (the selector auto-releases it), or a claim
+that has hit `maxAttempts` without being `blocked`. The framework's own
+`forge-selfcheck` additionally asserts that the shipped seed's `prompts/claims/`
+holds only `.gitkeep` — no leaked claim is ever distributed. `forge-export`
+resets `prompts/claims/` to just `.gitkeep` in adopter copies.
 
-**Releasing a stale claim.** If a worker crashed mid-prompt, delete its
-`prompts/claims/<ID>.json` (and clear/resolve `prompts/.logs/<ID>.note.md`). The
-prompt becomes eligible again on the next `next_prompt.py`.
+**Releasing a stale claim.** Self-healing usually makes this unnecessary: a
+crashed worker's claim expires after the TTL and the prompt is picked up again
+automatically. For a **legacy** claim without a heartbeat (never auto-released),
+delete its `prompts/claims/<ID>.json` (and clear/resolve
+`prompts/.logs/<ID>.note.md`); the prompt becomes eligible again on the next
+`next_prompt.py`.
 
 ---
 
