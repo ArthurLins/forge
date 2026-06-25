@@ -117,7 +117,7 @@
       "dependsOn": ["S2.1"],
       "refs": ["functional", "decisions"],
       "file": "tools/forge_tools/validate.py",
-      "commit": "",
+      "commit": "f98e495",
       "updatedAt": "2026-06-25"
     },
     {

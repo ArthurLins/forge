@@ -9,6 +9,7 @@ Generated from **Conventional Commits**. Versions are marked by SemVer tags (`v*
 
 #### Features
 
+- **forge-validate:** source-of-truth conflict guard (S2.6)
 - **forge-engine:** self-healing sharded claims (heartbeat/TTL + retry/auto-block) (S2.4)
 - **forge-prompt:** context discipline in the prompt standard (S2.2)
 - **forge-teams:** multi-contributor hardening — claims + merge queue + union-merge + teams guide

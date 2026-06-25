@@ -61,6 +61,9 @@ conflict and a silently mis-merged spec could land. Add a pre-merge guard to
 
 ## Outcome
 
-- _(filled at archive)_ Landed on `main` as a `feat(forge-validate):` commit; the
-  derived changelog refreshed via a follow-up `chore(prompts):` bookkeeping
-  commit. `S2.6` recorded `done` (phase S2 now 4/8).
+- Landed on `main` (maintainer mode, direct commit) as
+  `feat(forge-validate): source-of-truth conflict guard (S2.6)` — commit
+  **`f98e495`** (recorded as `S2.6`'s commit). The derived root changelog was
+  refreshed via a follow-up `chore(prompts):` bookkeeping commit.
+- `S2.6` recorded `done`; phase `S2` now 4/8. `make forge-selfcheck` green
+  post-commit; not pushed.
