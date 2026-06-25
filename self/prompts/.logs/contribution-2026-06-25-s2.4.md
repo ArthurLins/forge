@@ -85,6 +85,9 @@ stale past a TTL; and the orchestrator moves a prompt to `blocked` after
 
 ## Outcome
 
-- _(filled at archive)_ Landed on `main` as a `feat(forge-engine):` commit; the
-  derived changelog refreshed via a follow-up `chore(prompts):` bookkeeping
-  commit. `S2.4` recorded `done` (phase S2 now 3/8; this unblocks `S2.5`).
+- Landed on `main` (maintainer mode, direct commit) as
+  `feat(forge-engine): self-healing sharded claims (heartbeat/TTL + retry/auto-block) (S2.4)`
+  — commit **`7233382`** (recorded as `S2.4`'s commit). The derived root changelog
+  was refreshed via a follow-up `chore(prompts):` bookkeeping commit.
+- `S2.4` recorded `done`; phase `S2` now 3/8; **`S2.5` is now unblocked**.
+  `make forge-selfcheck` green post-commit; not pushed.
