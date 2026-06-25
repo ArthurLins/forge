@@ -82,3 +82,35 @@ is never edited in place — it is superseded.
 - **Consequences:** One command covers solo and contributor flows; the gate is
   mandatory in both; the constitution check and the explicit confirmation are hard
   stops; changes stay minimal and never pollute the root seeds.
+
+---
+
+## ADR-S5 — Scale & async readiness is a context-engineering + coordination problem (measure before re-architecting)
+
+- **Status:** Accepted
+- **Context:** Forge must be ready to scale to very large projects and to support
+  asynchronous multi-contributor / multi-agent work. The S1 baseline (claims,
+  union-merge, merge queue, `forge-validate`) covers the common parallel-merge
+  collisions, but a deliberate readiness audit (see
+  [`../reviews/2026-06-25-scale-async-readiness.md`](../reviews/2026-06-25-scale-async-readiness.md))
+  surfaced further gaps in derived-doc growth, claim self-healing, source-of-truth
+  conflict guarding, WIP/scheduling, module scoping, and reviewer scaling.
+- **Decision:** Treat readiness as a **context-engineering and coordination**
+  problem, not a "bigger model / more agents" one, and pursue it **incrementally
+  and evidence-grounded** as phase **S2**. Two standing guardrails: (1) **prefer
+  scoping and just-in-time retrieval over a bigger context** — never bulk-load
+  large requirement docs/roadmaps into a prompt; (2) **do not re-shard
+  `prompts/state.json` until contention is measured** — the merge queue + sharded
+  claims already serialize the dangerous write, and complexity is added only when
+  it demonstrably improves outcomes. Multi-agent parallelism is used **surgically**
+  (genuinely independent, read-heavy work such as per-module derivation/review);
+  dependent or shared-state work stays sequential through claims + the merge queue.
+  Every S2 change stays stack-neutral, domain-agnostic, and derived-docs-as-code.
+- **Consequences:** The S2 backlog (`S2.2…S2.8`) is prioritized by this stance and
+  each item is justified by a concrete gap plus validated evidence — guidance on
+  building efficient tools for AI agents (Anthropic, Cognition, Chroma) and
+  canonical CS/SE literature (Conway/mirroring, Parnas, Brooks, Amdahl, Cataldo,
+  DORA/Accelerate, *Software Engineering at Google*, Reinertsen; *Lost in the
+  Middle*, ReAct, Reflexion, Self-Consistency, SWE-bench/agent). The full citation
+  list lives in the review artifact. A future S2 item may turn the audit into a
+  *repeatable* readiness check.

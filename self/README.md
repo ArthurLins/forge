@@ -17,6 +17,7 @@ very skills, engine, and gates Forge ships.
 | `requirements/`      | Forge's **own** source of truth — lean: vision, the framework's capabilities as `FR-S*`, and the framework ADRs (`ADR-S*`). The constitution itself is [`FORGE.md`](../FORGE.md). |
 | `prompts/`           | the **improvement roadmap engine** — `state.json` + `next_prompt.py` + generated `STATUS.md`, scoped to Forge's own evolution (phase `S0` and beyond). |
 | `prompts/.logs/`     | contribution logs written by `/forge-contribute`.                  |
+| `reviews/`           | evidence-grounded readiness/gap reviews that justify a planned phase (e.g. the scale & async-collaboration audit behind phase `S2`). |
 
 ## The constitution
 
