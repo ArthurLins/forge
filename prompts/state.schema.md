@@ -40,6 +40,7 @@ hint and may be deleted once the file is populated.
 | `refs`      | string[] | yes      | References to the requirement docs (in `docs/requirements/`) this prompt reads/implements. |
 | `file`      | string   | yes      | Path to the prompt file, **relative to `prompts/`** (e.g. `phase-0-foundation/P0.1-....md`). |
 | `commit`    | string   | when `done` | The Conventional Commit hash that completed the prompt. Empty/omitted until `done`.   |
+| `owner`     | string   | no       | Optional owner/assignee (a person, team, agent, or module owner). Routing aid for async work (inverse-Conway); surfaced as an **Owner** column in `STATUS.md` only when at least one prompt declares it. Absent → no Owner column (backward-compatible). |
 | `updatedAt` | string   | yes      | ISO date (`YYYY-MM-DD`) of the last status change for this prompt.                        |
 
 ## Status semantics

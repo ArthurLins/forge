@@ -160,10 +160,49 @@ def _render_phase(
 ) -> None:
     phase_done = sum(1 for p in phase_prompts if p.get("status") == "done")
     has_refs = any(p.get("refs") for p in phase_prompts)
+    # Owner is an OPTIONAL inverse-Conway routing field (S2.7). The column is
+    # rendered only when at least one prompt declares an owner, so a suite that
+    # does not use ownership produces a byte-identical STATUS to before.
+    has_owner = any((p.get("owner") or "").strip() for p in phase_prompts)
     lines.append(
         "## Phase {} — {} ({}/{})".format(pid, name, phase_done, len(phase_prompts))
     )
     lines.append("")
+    if has_owner:
+        if has_refs:
+            lines.append("| Status | ID | Title | Depends on | Refs | Owner | Commit |")
+            lines.append("| ------ | -- | ----- | ---------- | ---- | ----- | ------ |")
+        else:
+            lines.append("| Status | ID | Title | Depends on | Owner | Commit |")
+            lines.append("| ------ | -- | ----- | ---------- | ----- | ------ |")
+        for p in phase_prompts:
+            icon = STATUS_ICON.get(p.get("status", "pending"), "[ ]")
+            owner = (p.get("owner") or "").strip() or "—"
+            if has_refs:
+                lines.append(
+                    "| {} | {} | {} | {} | {} | {} | {} |".format(
+                        icon,
+                        p.get("id", "?"),
+                        p.get("title", ""),
+                        _deps_label(p.get("dependsOn") or []),
+                        _refs_label(p.get("refs") or []),
+                        owner,
+                        _commit_label(p),
+                    )
+                )
+            else:
+                lines.append(
+                    "| {} | {} | {} | {} | {} | {} |".format(
+                        icon,
+                        p.get("id", "?"),
+                        p.get("title", ""),
+                        _deps_label(p.get("dependsOn") or []),
+                        owner,
+                        _commit_label(p),
+                    )
+                )
+        lines.append("")
+        return
     if has_refs:
         lines.append("| Status | ID | Title | Depends on | Refs | Commit |")
         lines.append("| ------ | -- | ----- | ---------- | ---- | ------ |")

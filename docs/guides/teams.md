@@ -200,6 +200,27 @@ integrity"** as a required check (see §1) to make this binding.
 
 ---
 
+## 5. Ownership / assignment (inverse-Conway routing)
+
+**What it solves.** A system's structure mirrors the communication structure of
+the org that builds it (Conway's Law; empirically confirmed by the "mirroring
+hypothesis"). At scale, async work produces clean architecture only if each
+module/area has a clear owner — so the partition of *who builds what* is
+deliberate, not accidental.
+
+**The optional `owner` field.** Each prompt in `prompts/state.json` may carry an
+optional `owner` (a person, team, agent, or module owner) — see
+[`../../prompts/state.schema.md`](../../prompts/state.schema.md). It is purely a
+routing aid: assign a module's prompts to the agent/contributor that owns that
+module's "secret" (the change-prone decision it hides), so interdependent work is
+coordinated rather than colliding. When at least one prompt declares an `owner`,
+`STATUS.md` renders an **Owner** column; with none declared, the column is absent
+and `STATUS.md` is byte-identical to before (fully backward-compatible). Combine
+with `--by-impact` scheduling (§2) so each owner picks the highest-leverage prompt
+in their area first.
+
+---
+
 ## Quick checklist for a team
 
 - [ ] **Enable the merge queue** on the default branch and mark the Forge check

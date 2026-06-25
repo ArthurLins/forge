@@ -126,10 +126,11 @@
       "id": "S2.7",
       "phase": "S2",
       "title": "Optional module/requirement ownership metadata (inverse-Conway routing) surfaced in STATUS and the teams guide",
-      "status": "pending",
+      "status": "done",
       "dependsOn": ["S2.3"],
       "refs": ["functional", "decisions"],
       "file": "prompts/state.schema.md",
+      "commit": "",
       "updatedAt": "2026-06-25"
     },
     {
