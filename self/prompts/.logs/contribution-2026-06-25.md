@@ -77,6 +77,10 @@ Dependencies: S2.2/S2.3/S2.4/S2.6 ← S2.1; S2.5 ← S2.4; S2.7/S2.8 ← S2.3.
 
 ## Outcome
 
-- _(filled at archive)_ Landed on `main` as a `docs(forge-self):` commit; the
-  derived changelog refreshed via a follow-up `chore(prompts):` bookkeeping commit
-  (skip-listed by the changelog generator). `S2.1` recorded `done`.
+- Landed on `main` (maintainer mode, direct commit) as
+  `docs(forge-self): S2 readiness audit + grounded improvement backlog (ADR-S5,
+  phase S2)` — commit **`0ca8329`** (recorded as `S2.1`'s commit). The derived
+  root changelog was refreshed via a follow-up `chore(prompts):` bookkeeping
+  commit (skip-listed by `changelog.py`, so it never makes the changelog stale).
+- `S2.1` recorded `done`; phase `S2` opened with `S2.2…S2.8` pending.
+- `make forge-selfcheck` green post-commit; not pushed.

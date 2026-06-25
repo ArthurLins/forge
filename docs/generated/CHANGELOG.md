@@ -27,6 +27,10 @@ Generated from **Conventional Commits**. Versions are marked by SemVer tags (`v*
 
 - **forge-export:** adopter copy has no dead targets and is docs-fresh
 
+#### Documentation
+
+- **forge-self:** S2 readiness audit + grounded improvement backlog (ADR-S5, phase S2)
+
 #### Tests
 
 - **forge:** end-to-end self-test + final integration fixes

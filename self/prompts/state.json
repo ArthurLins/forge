@@ -64,7 +64,7 @@
       "dependsOn": [],
       "refs": ["decisions"],
       "file": "self/reviews/2026-06-25-scale-async-readiness.md",
-      "commit": "",
+      "commit": "0ca8329",
       "updatedAt": "2026-06-25"
     },
     {
