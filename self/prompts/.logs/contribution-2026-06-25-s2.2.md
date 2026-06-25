@@ -58,6 +58,10 @@ load-bearing instruction at the start/end, and prefer one concrete worked exampl
 
 ## Outcome
 
-- _(filled at archive)_ Landed on `main` as a `feat(forge-prompt):` commit; the
-  derived changelog refreshed via a follow-up `chore(prompts):` bookkeeping
-  commit. `S2.2` recorded `done`.
+- Landed on `main` (maintainer mode, direct commit) as
+  `feat(forge-prompt): context discipline in the prompt standard (S2.2)` — commit
+  **`98c8eb9`** (recorded as `S2.2`'s commit). The derived root changelog was
+  refreshed via a follow-up `chore(prompts):` bookkeeping commit (skip-listed by
+  `changelog.py`).
+- `S2.2` recorded `done`; phase `S2` now 2/8. `make forge-selfcheck` green
+  post-commit; not pushed.

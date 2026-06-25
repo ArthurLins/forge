@@ -9,6 +9,7 @@ Generated from **Conventional Commits**. Versions are marked by SemVer tags (`v*
 
 #### Features
 
+- **forge-prompt:** context discipline in the prompt standard (S2.2)
 - **forge-teams:** multi-contributor hardening — claims + merge queue + union-merge + teams guide
 - **forge-validate:** adopter project integrity gate + optional strict CI at init
 - **forge-selfhost:** self-hosting — self/ workspace + /forge-contribute + forge-selfcheck gate + manifest/export + CI

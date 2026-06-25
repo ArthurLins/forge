@@ -75,7 +75,7 @@
       "dependsOn": ["S2.1"],
       "refs": ["functional", "decisions"],
       "file": "templates/prompt.template.md",
-      "commit": "",
+      "commit": "98c8eb9",
       "updatedAt": "2026-06-25"
     },
     {
