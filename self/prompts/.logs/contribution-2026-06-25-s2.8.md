@@ -32,6 +32,7 @@ confirmation: granted ("rode todos").
 - `make forge-selfcheck` → PASS (guidance-only change; no derived-doc drift).
 
 ## Outcome
-- _(filled at archive)_ Landed on `main` as `docs(forge-review):`; changelog
-  refreshed via a `chore(prompts):` bookkeeping commit. `S2.8` → `done` —
-  **phase S2 complete (8/8)**.
+- Landed on `main` as `docs(forge-review): reviewer scaling — per-module review +
+  reflect→retry (S2.8)` — commit **`0883b6f`**; changelog refreshed via a
+  `chore(prompts):` bookkeeping commit. `S2.8` → `done` — **phase S2 complete
+  (8/8)**. Not pushed.

@@ -141,7 +141,7 @@
       "dependsOn": ["S2.3"],
       "refs": ["functional", "decisions"],
       "file": ".claude/agents/reviewer.md",
-      "commit": "",
+      "commit": "0883b6f",
       "updatedAt": "2026-06-25"
     }
   ]

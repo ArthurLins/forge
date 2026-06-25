@@ -35,6 +35,7 @@ Generated from **Conventional Commits**. Versions are marked by SemVer tags (`v*
 
 #### Documentation
 
+- **forge-review:** reviewer scaling — per-module review + reflect→retry (S2.8)
 - **forge-self:** S2 readiness audit + grounded improvement backlog (ADR-S5, phase S2)
 
 #### Tests

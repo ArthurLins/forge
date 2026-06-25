@@ -48,4 +48,4 @@
 | [v] | S2.5 | WIP limits + dependency-aware scheduling: forge.config WIP cap, claim at most N, prefer prompts that unblock the most dependents | S2.4 | functional, decisions | `3789444` |
 | [v] | S2.6 | Source-of-truth conflict guard: forge-validate fails on git conflict markers + verifies ref->requirement consistency pre-merge | S2.1 | functional, decisions | `f98e495` |
 | [v] | S2.7 | Optional module/requirement ownership metadata (inverse-Conway routing) surfaced in STATUS and the teams guide | S2.3 | functional, decisions | `cff26f6` |
-| [v] | S2.8 | Reviewer scaling: per-module review scoping (parallelizable) + a review->reflect->retry self-correction loop | S2.3 | functional, decisions | — |
+| [v] | S2.8 | Reviewer scaling: per-module review scoping (parallelizable) + a review->reflect->retry self-correction loop | S2.3 | functional, decisions | `0883b6f` |
