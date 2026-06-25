@@ -71,10 +71,11 @@
       "id": "S2.2",
       "phase": "S2",
       "title": "Prompt context discipline: just-in-time @requirement retrieval + load-bearing instructions at start/end + worked examples (context budget)",
-      "status": "pending",
+      "status": "done",
       "dependsOn": ["S2.1"],
       "refs": ["functional", "decisions"],
       "file": "templates/prompt.template.md",
+      "commit": "",
       "updatedAt": "2026-06-25"
     },
     {

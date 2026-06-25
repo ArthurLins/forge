@@ -11,11 +11,14 @@
 - **ID:** P<phase>.<seq>
 - **Phase:** <phase number and name>
 - **Depends on:** <prompt ids or "none">
-- **Reference docs (read before starting):**
+- **Reference docs (read before starting)** — list only the docs/sections THIS
+  prompt needs (link by requirement id; do not pre-load whole specs):
   - `docs/requirements/index.md`
   - `docs/requirements/conventions.md` (Conventions Map — apply matching `EC-` rules)
-  - `docs/requirements/<specific docs for this prompt>`
-- **Requirements covered:** <requirement ids, e.g. R-xx / NFR-xx / BR-xx / C-xx>
+  - `docs/requirements/<specific docs/sections for this prompt>`
+- **Requirements covered:** <the specific requirement ids this prompt implements,
+  e.g. R-xx / NFR-xx / BR-xx / C-xx — these ids (not whole docs) are what to
+  retrieve, implement, and tag>
 - **Expected outputs / artifacts:** <folders / files / resources this prompt produces>
 
 ---
@@ -48,6 +51,14 @@ developer to approve).
 
 <A summary of everything that matters for this prompt, with no reliance on prior
 conversation. Always point to the docs that back each claim.>
+
+> **Context discipline (budget).** Include only what THIS prompt needs. Retrieve
+> the specific `@requirement` ids it implements — link to requirement docs by id
+> rather than pasting large excerpts (long context degrades recall, and
+> mid-context detail is the most easily lost). Put the load-bearing instruction —
+> the Objective and the Acceptance criteria — where attention is strongest: near
+> the **start** and restated at the **end**. Prefer one concrete worked example
+> over a long abstract description.
 
 ## Objective
 

@@ -54,8 +54,11 @@ capabilities are added here via [`/forge-contribute`](../../.claude/commands/for
   topological `dependsOn` order. (Serves principle 3.)
 - **FR-S12 — Template family (`templates/`).** Right-sized requirement templates
   (lean↔full), the self-contained prompt template, the ADR template, the layered
-  agent-guide template, the conventions catalog, and the CI gate template. (Serves
-  principles 1, 4, 8.)
+  agent-guide template, the conventions catalog, and the CI gate template. The
+  prompt template enforces a **context-discipline standard** (`S2.2`): retrieve
+  only the specific `@requirement` ids the prompt implements, place load-bearing
+  instructions at the start/end, and prefer a worked example — keeping each prompt
+  within a tight context budget (`ADR-S5`). (Serves principles 1, 4, 7, 8.)
 - **FR-S13 — Layered agent guides (`AGENTS.md` root + per area).** A root agent
   guide pointing to the layer below, with a consolidated Definition of Done.
   (Serves principle 8.)

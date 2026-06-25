@@ -101,6 +101,9 @@ domain is baked in here.
 - [ ] **Implementation matches the referenced requirements** — nothing invented,
       nothing outside the prompt's scope. (Check it against the docs in the
       prompt's "Reference docs".)
+- [ ] **Context was scoped, not dumped** — the prompt retrieved only the specific
+      `@requirement` ids it implements (linking docs by id, not pasting large
+      excerpts), with the load-bearing spec at the start/end.
 - [ ] **Critical-path tests pass.** The critical flows are those declared by the
       project in `forge.config.json` → `criticalPaths.paths` (defined from its
       requirement docs). If the prompt touches a critical path, that path has a
