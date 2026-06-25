@@ -103,10 +103,11 @@
       "id": "S2.5",
       "phase": "S2",
       "title": "WIP limits + dependency-aware scheduling: forge.config WIP cap, claim at most N, prefer prompts that unblock the most dependents",
-      "status": "pending",
+      "status": "done",
       "dependsOn": ["S2.4"],
       "refs": ["functional", "decisions"],
       "file": "prompts/next_prompt.py",
+      "commit": "",
       "updatedAt": "2026-06-25"
     },
     {

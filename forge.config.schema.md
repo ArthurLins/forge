@@ -88,6 +88,7 @@ optional; **absent = the defaults below**. Read by the prompt selector
 | ------------- | ------ | ------- | -------------------------------------------------------------------------------------------------------- |
 | `ttlSeconds`  | number | `1800`  | Heartbeat TTL. A claim whose `heartbeatAt` is older than this is **expired**: the selector ignores it (the prompt is eligible again — self-healing for a crashed worker), and `forge-validate` warns. A claim with **no** `heartbeatAt` is never auto-released. |
 | `maxAttempts` | number | `3`     | Failed-attempt budget. The orchestrator increments a claim's `attempts` on each failure; after this many it sets the prompt's `status` to `blocked`. `forge-validate` warns on an over-`maxAttempts` claim that is not yet `blocked`. |
+| `maxConcurrent` | number | `0` (unlimited) | **WIP limit** — a non-negative integer cap on how many ACTIVE (non-expired) claims may exist at once, i.e. how many prompts the orchestrator runs in parallel. Absent or `0` = unlimited (today's behavior). Bounded WIP keeps the merge queue short and feedback fast. The orchestration commands hold at most this many in-flight claims; `forge-validate` warns (never fails) when the active-claim count exceeds it. Stack-neutral. |
 
 ### `docs` (object)
 
@@ -180,6 +181,7 @@ The continuous-integration profile.
   `traceability.tagAliases` carry stack-neutral defaults.
 - `requirementTiers.selected` is empty until genesis chooses a tier.
 - **No `claims` overrides** — the claim TTL (`1800s`) and attempt budget (`3`)
-  use their built-in defaults until a project sets `claims.ttlSeconds` /
-  `claims.maxAttempts`.
+  use their built-in defaults, and the WIP limit is unlimited
+  (`claims.maxConcurrent` absent/`0`), until a project sets `claims.ttlSeconds` /
+  `claims.maxAttempts` / `claims.maxConcurrent`.
 - Conventions default to English docs/code and Forge's casing rules.

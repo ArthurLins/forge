@@ -107,11 +107,28 @@ by hand.
    After **`claims.maxAttempts`** (default **3**) failures, set the prompt's
    `status` to `blocked` in `state.json` (the selector already skips `blocked`).
 
+**WIP limit + impact-aware scheduling.** Two optional knobs keep a parallel run
+healthy without changing default behavior:
+
+- **WIP limit (`claims.maxConcurrent`).** A non-negative cap on how many ACTIVE
+  claims (prompts in flight) may exist at once; absent / `0` = unlimited. The
+  orchestration commands hold at most this many concurrent claims — count the
+  active claims in `prompts/claims/` before claiming another, and wait if you are
+  at the cap. Bounded WIP keeps the merge queue short and feedback fast.
+  `forge-validate` **warns** (never fails) when the active-claim count exceeds it.
+- **Impact-aware picking (`next_prompt.py --by-impact`).** Among the eligible
+  prompts, this returns the one that unblocks the **most** still-pending work
+  (the id appearing in the most `dependsOn` lists), ties broken by file order. It
+  is a pure reordering of the already-eligible set — the default (no flag) is
+  unchanged. The orchestrator uses it under parallelism to start high-impact work
+  first, widening the dependency frontier for the other workers.
+
 **Integrity is enforced.** `forge-validate`'s **claims-integrity** check fails on
 a claim that references a non-existent prompt or a `done` prompt (a stale/leaked
 claim), or on a malformed `heartbeatAt`/`attempts` shape; it **warns** on a very
-old claim, an **expired** heartbeat (the selector auto-releases it), or a claim
-that has hit `maxAttempts` without being `blocked`. The framework's own
+old claim, an **expired** heartbeat (the selector auto-releases it), a claim
+that has hit `maxAttempts` without being `blocked`, or more active claims than
+the `claims.maxConcurrent` WIP limit. The framework's own
 `forge-selfcheck` additionally asserts that the shipped seed's `prompts/claims/`
 holds only `.gitkeep` — no leaked claim is ever distributed. `forge-export`
 resets `prompts/claims/` to just `.gitkeep` in adopter copies.

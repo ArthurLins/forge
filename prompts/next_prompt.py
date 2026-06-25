@@ -6,11 +6,24 @@ Output (stdout), TAB-separated:
   DONE             -> everything done (or no prompts yet)
   BLOCKED\t<ids>   -> there are pending prompts but none has its dependsOn satisfied
 
-Usage: python3 prompts/next_prompt.py
+Usage: python3 prompts/next_prompt.py [--by-impact]
 
 The engine is stack- and domain-neutral: eligibility is pure topological order
 over `dependsOn`, with no project-specific logic. `state.json` lives next to this
 file (path-relative); nothing about the host project is hardcoded.
+
+Impact-aware ordering (`--by-impact`)
+-------------------------------------
+By DEFAULT the selector returns the first eligible prompt in file order — the
+historical behavior, unchanged. With the optional `--by-impact` flag it instead
+returns, AMONG the same already-eligible set, the prompt that unblocks the MOST
+directly-dependent still-pending work: the one whose id appears in the most
+`dependsOn` lists of pending/in_progress prompts. Ties fall back to file order
+(stable). This is a pure reordering of the eligible set — it never returns an
+ineligible or actively-claimed prompt, reads no config, and leaves the output
+contract (`<id>\t<file>` / `DONE` / `BLOCKED\t<ids>`) untouched. An orchestrator
+running with parallelism uses it to pick high-impact work first, keeping the
+dependency frontier wide.
 
 Sharded claims (parallel-execution safety)
 ------------------------------------------
@@ -159,7 +172,29 @@ def claimed_ids() -> set:
     return ids
 
 
-def main() -> int:
+def _impact_score(prompt_id, pending) -> int:
+    """How many still-pending prompts directly depend on `prompt_id`.
+
+    Counts pending/in_progress prompts (the `pending` set already excludes
+    `done`/`blocked`/claimed) that list `prompt_id` in their `dependsOn`. Higher
+    score = unblocks more work. Pure count over the already-eligible universe; no
+    config, no project assumptions.
+    """
+    score = 0
+    for other in pending:
+        if other["id"] == prompt_id:
+            continue
+        if prompt_id in (other.get("dependsOn", []) or []):
+            score += 1
+    return score
+
+
+def main(argv=None) -> int:
+    # Minimal stdlib argv parsing: `--by-impact` may appear in any position; any
+    # other token is ignored so the selector never raises on stray input.
+    args = sys.argv[1:] if argv is None else argv
+    by_impact = "--by-impact" in args
+
     with open(STATE, encoding="utf-8") as fh:
         data = json.load(fh)
 
@@ -180,12 +215,24 @@ def main() -> int:
         print("DONE")
         return 0
 
-    # File order is already topological (by phase/sequence).
-    for p in pending:
-        deps = p.get("dependsOn", []) or []
-        if all(d in done for d in deps):
-            print(f"{p['id']}\t{p.get('file', '')}")
-            return 0
+    # The eligible set: pending prompts whose dependencies are all satisfied.
+    # File order is already topological (by phase/sequence), so it is the stable
+    # tie-break for `--by-impact` and the sole order for the default path.
+    eligible = [
+        p
+        for p in pending
+        if all(d in done for d in (p.get("dependsOn", []) or []))
+    ]
+
+    if eligible:
+        if by_impact:
+            # Reorder the SAME eligible set: most-unblocking first, file order as
+            # a stable tie-break (max() keeps the first max on equal scores).
+            chosen = max(eligible, key=lambda p: _impact_score(p["id"], pending))
+        else:
+            chosen = eligible[0]
+        print(f"{chosen['id']}\t{chosen.get('file', '')}")
+        return 0
 
     # Nothing eligible: pending prompts have unsatisfied dependencies.
     ids = ",".join(p["id"] for p in pending)

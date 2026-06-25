@@ -55,7 +55,10 @@ capabilities are added here via [`/forge-contribute`](../../.claude/commands/for
   (`S2.4`): a sharded claim whose `heartbeatAt` goes stale past the TTL
   (`claims.ttlSeconds`, default 1800s) is auto-released, so a crashed worker never
   deadlocks its prompt; `forge-validate` warns on expired / over-`maxAttempts`
-  claims (`ADR-S5`). (Serves principles 3, 5.)
+  claims (`ADR-S5`). It also **schedules under load** (`S2.5`): `--by-impact`
+  prefers the eligible prompt that unblocks the most dependents, and
+  `claims.maxConcurrent` bounds in-flight work (a WIP limit `forge-validate` warns
+  on). (Serves principles 3, 5.)
 - **FR-S12 — Template family (`templates/`).** Right-sized requirement templates
   (lean↔full), the self-contained prompt template, the ADR template, the layered
   agent-guide template, the conventions catalog, and the CI gate template. The

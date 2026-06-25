@@ -24,8 +24,10 @@ Checks
                                   a `done` prompt (a stale/leaked claim → fail);
                                   the OPTIONAL `heartbeatAt`/`attempts` fields are
                                   shape-checked when present (malformed → fail); a
-                                  very old claim, an expired heartbeat, or an
-                                  over-`maxAttempts` claim → WARNING. No dir → skip.
+                                  very old claim, an expired heartbeat, an
+                                  over-`maxAttempts` claim, or more ACTIVE claims
+                                  than `claims.maxConcurrent` (the WIP limit) →
+                                  WARNING. No dir → skip.
   requirement-tag-integrity (hard) every `@requirement`/`@rule` id referenced in
                                   source is DECLARED in docs/requirements/. A
                                   dangling tag fails; a declared requirement with
@@ -315,7 +317,9 @@ def check_claims_integrity() -> CheckResult:
       - a very old claim (`claimedAt` > STALE_CLAIM_AGE_DAYS) → WARNING;
       - an EXPIRED claim (heartbeat older than the TTL — the selector
         auto-releases it) → WARNING;
-      - `attempts` >= maxAttempts on a non-`blocked` prompt → WARNING.
+      - `attempts` >= maxAttempts on a non-`blocked` prompt → WARNING;
+      - more ACTIVE (non-expired) claims than `claims.maxConcurrent` (the
+        optional WIP limit; absent / `0` = unlimited) → WARNING.
     """
     res = CheckResult("claims-integrity")
     claims_dir = common.repo_path(CLAIMS_DIR)
@@ -341,8 +345,9 @@ def check_claims_integrity() -> CheckResult:
         str(p.get("id")): p.get("status") for p in prompts if p.get("id") is not None
     }
 
-    ttl_seconds, max_attempts = _claims_config()
+    ttl_seconds, max_attempts, max_concurrent = _claims_config()
     now = datetime.datetime.now(datetime.timezone.utc)
+    active_claims = 0  # non-expired claims, for the optional WIP-limit warning
     for fname in files:
         claim_id = fname[: -len(".json")]
         path = os.path.join(claims_dir, fname)
@@ -390,6 +395,10 @@ def check_claims_integrity() -> CheckResult:
         # OPTIONAL self-healing fields. Validate their SHAPE when present (a
         # malformed value is a hard fail, like a malformed claim), then surface
         # the lifecycle WARNINGs (expired heartbeat / over-attempt).
+        # A claim is ACTIVE (counts toward the WIP limit) unless it has a
+        # parseable `heartbeatAt` older than the TTL — the same active/expired
+        # rule the selector applies (no heartbeat → active; expired → released).
+        is_active = True
         if "heartbeatAt" in claim:
             heartbeat = _parse_iso(claim.get("heartbeatAt"))
             if heartbeat is None:
@@ -400,6 +409,7 @@ def check_claims_integrity() -> CheckResult:
             else:
                 age_seconds = (now - heartbeat).total_seconds()
                 if age_seconds > ttl_seconds:
+                    is_active = False
                     res.warn(
                         "claim {0} heartbeat expired ({1:.0f}s > ttl {2}s, "
                         "heartbeatAt {3}) — the selector auto-releases it; remove "
@@ -407,6 +417,8 @@ def check_claims_integrity() -> CheckResult:
                             fname, age_seconds, ttl_seconds, claim.get("heartbeatAt")
                         )
                     )
+        if is_active:
+            active_claims += 1
 
         if "attempts" in claim:
             attempts = claim.get("attempts")
@@ -422,14 +434,28 @@ def check_claims_integrity() -> CheckResult:
                         fname, attempts, max_attempts
                     )
                 )
+
+    # OPTIONAL WIP limit (claims.maxConcurrent). A WARNING, never a hard fail:
+    # bounded WIP keeps queues short and feedback fast, but it is advisory. Only
+    # ACTIVE (non-expired) claims count; absent / `0` maxConcurrent = unlimited
+    # (no warning — today's behavior).
+    if max_concurrent > 0 and active_claims > max_concurrent:
+        res.warn(
+            "{0} active claims exceed claims.maxConcurrent={1} — WIP limit "
+            "exceeded; finish or release in-flight prompts before claiming "
+            "more".format(active_claims, max_concurrent)
+        )
     return res
 
 
-def _claims_config() -> Tuple[int, int]:
-    """Return ``(ttlSeconds, maxAttempts)`` from forge.config.json -> claims.
+def _claims_config() -> Tuple[int, int, int]:
+    """Return ``(ttlSeconds, maxAttempts, maxConcurrent)`` from config -> claims.
 
-    Both fields are optional; an absent / non-positive value falls back to the
-    module constants (same defaults the selector uses).
+    All three are optional. ``ttlSeconds`` / ``maxAttempts`` fall back to the
+    module constants on an absent / non-positive value (same defaults the
+    selector uses). ``maxConcurrent`` is the OPTIONAL WIP limit: a non-negative
+    integer cap on active claims; absent / `0` / invalid = `0` = unlimited (no
+    WIP warning — today's behavior).
     """
     cfg = common.load_config()
     claims = cfg.get("claims") if isinstance(cfg, dict) else None
@@ -451,7 +477,15 @@ def _claims_config() -> Tuple[int, int]:
     except (TypeError, ValueError):
         pass
 
-    return ttl, max_attempts
+    max_concurrent = 0  # 0 = unlimited (no WIP limit configured).
+    try:
+        candidate = int(claims.get("maxConcurrent"))
+        if candidate > 0:
+            max_concurrent = candidate
+    except (TypeError, ValueError):
+        pass
+
+    return ttl, max_attempts, max_concurrent
 
 
 def _is_non_negative_int(value: Any) -> bool:

@@ -94,6 +94,16 @@ phase by phase with `/forge-run-phase`.
 
 - Each prompt runs **isolated** in a subagent; only its summary returns → the
   orchestrator stays lean for the whole run.
+- **Parallelism — WIP limit + impact-aware picking.** When running prompts in
+  parallel, hold at most `claims.maxConcurrent` (see `forge.config.schema.md` →
+  `claims`) in-flight claims at once — the **WIP limit**; absent / `0` =
+  unlimited. Before claiming a new prompt, count the ACTIVE claims in
+  `prompts/claims/` and wait if you are at the cap. To choose *which* eligible
+  prompt to start, run `python3 prompts/next_prompt.py --by-impact`: it returns,
+  among the same eligible set, the prompt that unblocks the most still-pending
+  work. Rationale: bounded WIP keeps queues short and feedback fast, and picking
+  high-impact work first widens the dependency frontier for the other workers.
+  The flag is optional and changes nothing in single-prompt mode.
 - The subagent needs permission to `git commit`; approve it when prompted.
 - **Stack-neutral:** every gate/test/command comes from `forge.config.json →
   ci.commands` and `criticalPaths.paths`, and the source of truth is
